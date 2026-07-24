@@ -1,0 +1,285 @@
+@startuml CondoSecure_BDD
+
+' ============================================================
+' CondoSecure - Diagrama de Entidades (v4)
+' ============================================================
+
+hide circle
+skinparam linetype ortho
+
+' ------------------------------------------------------------
+' IDENTIDAD Y ACCESO
+' ------------------------------------------------------------
+
+entity "Persona" as Persona {
+  * id_persona : INT <<PK>>
+  --
+  * nombres : VARCHAR(100)
+  * apellidos : VARCHAR(100)
+  * ci_ruc : VARCHAR(20) <<UNIQUE>>
+  correo : VARCHAR(100)
+  telefono : VARCHAR(20)
+  foto : VARCHAR(255)
+}
+
+entity "Usuario" as Usuario {
+  * id_usuario : INT <<PK>>
+  --
+  * id_persona : INT <<FK>>
+  * id_rol : INT <<FK>>
+  id_vivienda : INT <<FK, NULLABLE>>
+  id_periodo_directiva : INT <<FK, NULLABLE>>
+  * correo_login : VARCHAR(100) <<UNIQUE>>
+  * password_hash : VARCHAR(255)
+  * fecha_decision : DATE
+  * estado : ENUM(PENDIENTE, ACTIVO, INACTIVO, RECHAZADO)
+  motivo_rechazo : VARCHAR(255)
+}
+
+entity "Rol" as Rol {
+  * id_rol : INT <<PK>>
+  --
+  * codigo : VARCHAR(20)
+  * nombre : VARCHAR(50)
+  descripcion : VARCHAR(255)
+  * estado : BIT
+}
+
+entity "Modulo" as Modulo {
+  * id_modulo : INT <<PK>>
+  --
+  * nombre : VARCHAR(50)
+}
+
+entity "Rol_Modulo" as RolModulo {
+  * id_rol : INT <<PK, FK>>
+  * id_modulo : INT <<PK, FK>>
+}
+
+entity "Token_Recuperacion" as Token {
+  * id_token : INT <<PK>>
+  --
+  * id_usuario : INT <<FK>>
+  * token : VARCHAR(255)
+  * fecha_generacion : DATETIME
+  * fecha_expiracion : DATETIME
+  * usado : BIT
+}
+
+entity "Vivienda" as Vivienda {
+  * id_vivienda : INT <<PK>>
+  --
+  * numero : VARCHAR(20)
+}
+
+' ------------------------------------------------------------
+' GOBERNANZA
+' ------------------------------------------------------------
+
+entity "Periodo_Directiva" as Periodo {
+  * id_periodo : INT <<PK>>
+  --
+  * fecha_inicio : DATE
+  fecha_fin : DATE <<NULLABLE>>
+  * saldo_inicial : DECIMAL(12,2)
+  * estado : ENUM(ACTIVO, CERRADO)
+}
+
+' ------------------------------------------------------------
+' FINANCIERO
+' ------------------------------------------------------------
+
+entity "Presupuesto" as Presupuesto {
+  * id_presupuesto : INT <<PK>>
+  --
+  * anio : INT
+  * total : DECIMAL(12,2)
+  * archivo_excel : VARCHAR(255)
+  * fecha_carga : DATETIME
+}
+
+entity "Rubro" as Rubro {
+  * id_rubro : INT <<PK>>
+  --
+  * codigo : VARCHAR(20)
+  * nombre : VARCHAR(100)
+  * tipo : ENUM(INGRESO, EGRESO)
+  * estado : BIT
+}
+
+entity "Presupuesto_Rubro" as PresupuestoRubro {
+  * id_presupuesto : INT <<PK, FK>>
+  * id_rubro : INT <<PK, FK>>
+  --
+  * monto_asignado : DECIMAL(12,2)
+}
+
+entity "Alicuota" as Alicuota {
+  * id_alicuota : INT <<PK>>
+  --
+  * id_vivienda : INT <<FK>>
+  * id_presupuesto : INT <<FK>>
+  * mes : INT
+  * anio : INT
+  * valor_base : DECIMAL(10,2)
+  * fecha_vencimiento : DATE
+  * estado : ENUM(PENDIENTE, PAGADO, EN_MORA)
+}
+
+entity "Multa" as Multa {
+  * id_multa : INT <<PK>>
+  --
+  * id_alicuota : INT <<FK>>
+  * dias_atraso : INT
+  * valor : DECIMAL(10,2)
+  * fecha_generacion : DATETIME
+  * fecha_actualizacion : DATETIME
+  * estado : ENUM(PENDIENTE, PAGADA)
+}
+
+entity "Ingreso" as Ingreso {
+  * id_ingreso : INT <<PK>>
+  --
+  * id_rubro : INT <<FK>>
+  * id_vivienda : INT <<FK>>
+  * id_usuario : INT <<FK>>
+  id_alicuota : INT <<FK, NULLABLE>>
+  id_multa : INT <<FK, NULLABLE>>
+  * descripcion : VARCHAR(255)
+  valor_alicuota : DECIMAL(10,2)
+  valor_multa : DECIMAL(10,2)
+  * total_pagado : DECIMAL(10,2)
+  comprobante : VARCHAR(255)
+  * fecha_pago : DATETIME
+  * estado : ENUM(PENDIENTE, PAGADO)
+  --
+  ' NOTA: valor_alicuota y valor_multa se guardan aquí solo para mantener 
+  ' los valores originales por si llegasen a ser alterados por accidente.
+}
+
+entity "Proveedor" as Proveedor {
+  * id_proveedor : INT <<PK>>
+  --
+  * nombre : VARCHAR(100)
+  * estado : BIT
+}
+
+entity "Egreso" as Egreso {
+  * id_egreso : INT <<PK>>
+  --
+  * id_proveedor : INT <<FK>>
+  * id_rubro : INT <<FK>>
+  * id_usuario : INT <<FK>>
+  * num_factura : VARCHAR(50)
+  * fecha_comprobante : DATE
+  * valor : DECIMAL(10,2)
+  * estado : ENUM(PENDIENTE, PAGADO)
+  num_cheque : VARCHAR(30)
+  * debito_automatico : BIT
+}
+
+' ------------------------------------------------------------
+' REPORTES
+' ------------------------------------------------------------
+
+entity "Reporte_Financiero" as Reporte {
+  * id_reporte : INT <<PK>>
+  --
+  * id_usuario : INT <<FK>>
+  * tipo : VARCHAR(50)
+  * fecha_inicio : DATE
+  * fecha_fin : DATE
+  * fecha_generacion : DATETIME
+  * archivo_pdf : VARCHAR(255)
+}
+
+' ------------------------------------------------------------
+' CONTROL DE ACCESO FISICO (QR)
+' ------------------------------------------------------------
+
+entity "Visitante" as Visitante {
+  * id_visitante : INT <<PK>>
+  --
+  * id_vivienda_destino : INT <<FK>>
+  * nombre : VARCHAR(100)
+  * apellido : VARCHAR(100)
+  * cedula : VARCHAR(20)
+  * num_personas : INT
+  * tiene_vehiculo : BIT
+  placa : VARCHAR(20)
+  fecha_hora_ingreso_real : DATETIME
+  fecha_hora_salida_real : DATETIME
+  * estado : BIT
+}
+
+entity "Codigo_QR" as CodigoQR {
+  * id_qr : INT <<PK>>
+  --
+  * id_usuario : INT <<FK>>
+  * id_visitante : INT <<FK, UNIQUE>>
+  * codigo : VARCHAR(255)
+  * valido_desde : DATETIME
+  * valido_hasta : DATETIME
+  * fecha_generacion : DATETIME
+  * estado : ENUM(PENDIENTE, UTILIZADO, VENCIDO, REVOCADO)
+  evidencia : VARCHAR(255)
+}
+
+' ------------------------------------------------------------
+' TRAZABILIDAD
+' ------------------------------------------------------------
+
+entity "Auditoria" as Auditoria {
+  * id_auditoria : INT <<PK>>
+  --
+  * id_usuario : INT <<FK>>
+  * id_modulo : INT <<FK>>
+  * accion : VARCHAR(255)
+  detalle : TEXT
+  valor_anterior : TEXT
+  valor_nuevo : TEXT
+  * ip_origen : VARCHAR(45)
+  * fecha : DATETIME
+}
+
+' ============================================================
+' RELACIONES
+' ============================================================
+
+Persona ||--o{ Usuario : "tiene cuentas"
+Rol ||--o{ Usuario : "asigna"
+Vivienda |o--o{ Usuario : "reside en (nullable)"
+Periodo ||--o{ Usuario : "pertenece a (si es directiva)"
+
+Rol ||--o{ RolModulo
+Modulo ||--o{ RolModulo
+
+Usuario ||--o{ Token
+
+Presupuesto ||--o{ PresupuestoRubro
+Rubro ||--o{ PresupuestoRubro
+
+Vivienda ||--o{ Alicuota
+Presupuesto ||--o{ Alicuota
+Alicuota ||--o{ Multa
+
+Rubro ||--o{ Ingreso
+Vivienda ||--o{ Ingreso
+Usuario ||--o{ Ingreso : "registra"
+Alicuota |o--o{ Ingreso
+Multa |o--o{ Ingreso
+
+Proveedor ||--o{ Egreso
+Rubro ||--o{ Egreso
+Usuario ||--o{ Egreso : "registra"
+
+Usuario ||--o{ Reporte : "genera"
+
+Vivienda ||--o{ Visitante : "destino"
+Usuario ||--o{ CodigoQR : "genera"
+CodigoQR ||--|| Visitante : "pertenece a"
+
+Usuario ||--o{ Auditoria
+Modulo ||--o{ Auditoria
+
+@enduml
