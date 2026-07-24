@@ -4,12 +4,30 @@ const sequelize = require("../config/sequelize.config");
 const Egreso = sequelize.define(
     "egreso",
     {
-        beneficiario: {
-            type: DataTypes.STRING(100),
+        id_egreso: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        id_proveedor: {
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
-                notNull: { msg: "El beneficiario es requerido" },
-                notEmpty: { msg: "El beneficiario es requerido" }
+                notNull: { msg: "El proveedor es requerido" }
+            }
+        },
+        id_rubro: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            validate: {
+                notNull: { msg: "El rubro es requerido" }
+            }
+        },
+        id_usuario: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            validate: {
+                notNull: { msg: "El usuario es requerido" }
             }
         },
         num_factura: {
@@ -20,12 +38,11 @@ const Egreso = sequelize.define(
                 notEmpty: { msg: "El número de factura es requerido" }
             }
         },
-        rubro: {
-            type: DataTypes.STRING(100),
+        fecha_comprobante: {
+            type: DataTypes.DATEONLY,
             allowNull: false,
             validate: {
-                notNull: { msg: "El rubro es requerido" },
-                notEmpty: { msg: "El rubro es requerido" }
+                notNull: { msg: "La fecha del comprobante es requerida" }
             }
         },
         valor: {
@@ -35,17 +52,10 @@ const Egreso = sequelize.define(
                 notNull: { msg: "El valor es requerido" }
             }
         },
-        fecha_emision: {
-            type: DataTypes.DATEONLY,
-            allowNull: false,
-            validate: {
-                notNull: { msg: "La fecha de emisión es requerida" }
-            }
-        },
         estado: {
-            type: DataTypes.ENUM("Pendiente", "Pagado"),
+            type: DataTypes.ENUM("PENDIENTE", "PAGADO"),
             allowNull: false,
-            defaultValue: "Pendiente"
+            defaultValue: "PENDIENTE"
         },
         num_cheque: {
             type: DataTypes.STRING(30),
@@ -55,13 +65,6 @@ const Egreso = sequelize.define(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false
-        },
-        id_usuario_tesorera: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                notNull: { msg: "La tesorera es requerida" }
-            }
         }
     },
     {
@@ -71,3 +74,12 @@ const Egreso = sequelize.define(
 );
 
 module.exports = Egreso;
+
+// Definición de relaciones
+const Proveedor = require("./proveedor.model");
+const Rubro = require("./rubro.model");
+const Usuario = require("./usuario.model");
+
+Egreso.belongsTo(Proveedor, { foreignKey: "id_proveedor" });
+Egreso.belongsTo(Rubro, { foreignKey: "id_rubro" });
+Egreso.belongsTo(Usuario, { foreignKey: "id_usuario" });

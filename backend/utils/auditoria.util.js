@@ -1,4 +1,4 @@
-const { Auditoria } = require("../models");
+const Auditoria = require("../models/auditoria.model");
 
 /**
  * Registra una entrada inmutable en la bitácora de auditoría.

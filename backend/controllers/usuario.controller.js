@@ -1,6 +1,10 @@
 const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
-const { Usuario, Rol, Casa, Auditoria } = require("../models");
+const Usuario = require("../models/usuario.model");
+const Rol = require("../models/rol.model");
+const Vivienda = require("../models/vivienda.model");
+const Casa = Vivienda;
+const Auditoria = require("../models/auditoria.model");
 const { generarPasswordProvisional } = require("../utils/password.util");
 const { registrarAuditoria } = require("../utils/auditoria.util");
 

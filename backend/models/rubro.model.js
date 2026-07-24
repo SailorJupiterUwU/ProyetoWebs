@@ -1,10 +1,10 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/sequelize.config");
 
-const Rol = sequelize.define(
-    "rol",
+const Rubro = sequelize.define(
+    "rubro",
     {
-        id_rol: {
+        id_rubro: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
@@ -18,16 +18,19 @@ const Rol = sequelize.define(
             }
         },
         nombre: {
-            type: DataTypes.STRING(50),
+            type: DataTypes.STRING(100),
             allowNull: false,
             validate: {
-                notNull: { msg: "El nombre del rol es requerido" },
-                notEmpty: { msg: "El nombre del rol es requerido" }
+                notNull: { msg: "El nombre del rubro es requerido" },
+                notEmpty: { msg: "El nombre del rubro es requerido" }
             }
         },
-        descripcion: {
-            type: DataTypes.STRING(255),
-            allowNull: true
+        tipo: {
+            type: DataTypes.ENUM("INGRESO", "EGRESO"),
+            allowNull: false,
+            validate: {
+                notNull: { msg: "El tipo de rubro es requerido" }
+            }
         },
         estado: {
             type: DataTypes.BOOLEAN,
@@ -36,9 +39,9 @@ const Rol = sequelize.define(
         }
     },
     {
-        tableName: "roles",
+        tableName: "rubros",
         timestamps: false
     }
 );
 
-module.exports = Rol;
+module.exports = Rubro;

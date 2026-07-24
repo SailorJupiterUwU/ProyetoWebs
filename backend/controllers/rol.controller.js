@@ -1,4 +1,5 @@
-const { Rol, Usuario } = require("../models");
+const Rol = require("../models/rol.model");
+const Usuario = require("../models/usuario.model");
 const { registrarAuditoria } = require("../utils/auditoria.util");
 
 /**

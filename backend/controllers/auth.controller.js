@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Usuario, Rol } = require("../models");
+const Usuario = require("../models/usuario.model");
+const Rol = require("../models/rol.model");
 const { JWT_SECRET, JWT_EXPIRES_IN, JWT_RESET_EXPIRES_IN } = require("../config/jwt.config");
 const { registrarAuditoria } = require("../utils/auditoria.util");
 

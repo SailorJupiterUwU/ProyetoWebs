@@ -1,4 +1,7 @@
-const { Casa, Usuario, Ingreso } = require("../models");
+const Vivienda = require("../models/vivienda.model");
+const Casa = Vivienda;
+const Usuario = require("../models/usuario.model");
+const Ingreso = require("../models/ingreso.model");
 const { registrarAuditoria } = require("../utils/auditoria.util");
 
 /**

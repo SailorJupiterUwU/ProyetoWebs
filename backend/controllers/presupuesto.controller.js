@@ -1,6 +1,10 @@
 const path = require("path");
 const XLSX = require("xlsx");
-const { Presupuesto, Casa, Egreso, Ingreso } = require("../models");
+const Presupuesto = require("../models/presupuesto.model");
+const Vivienda = require("../models/vivienda.model");
+const Casa = Vivienda;
+const Egreso = require("../models/egreso.model");
+const Ingreso = require("../models/ingreso.model");
 const { mapearColumnas } = require("../utils/columnMapper.util");
 const { registrarAuditoria } = require("../utils/auditoria.util");
 const { Op } = require("sequelize");
