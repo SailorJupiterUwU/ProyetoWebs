@@ -99,7 +99,10 @@ export const ENDPOINTS = {
     INGRESO: (id) => `${BASE_URL}/qr/${id}/ingreso`,
     SALIDA: (id) => `${BASE_URL}/qr/${id}/salida`,
     REVOCAR: (id) => `${BASE_URL}/qr/${id}/revocar`,
-  }
+  },
+  AUDITORIA: {
+    LISTAR: `${BASE_URL}/auditoria`,
+  },
 };
 
 export default ENDPOINTS;
