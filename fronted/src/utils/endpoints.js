@@ -84,6 +84,11 @@ export const ENDPOINTS = {
     GENERAR: `${BASE_URL}/reportes`,
     DESCARGAR: (id) => `${BASE_URL}/reportes/${id}/descargar`,
   },
+  PROVEEDORES: {
+    LISTAR: `${BASE_URL}/proveedores`,
+    CREAR: `${BASE_URL}/proveedores`,
+    ACTUALIZAR: (id) => `${BASE_URL}/proveedores/${id}`,
+  },
   SEGURIDAD: {
     GENERAR_QR: `${BASE_URL}/seguridad/generar-qr`,
     VALIDAR_QR: `${BASE_URL}/seguridad/validar-qr`,
