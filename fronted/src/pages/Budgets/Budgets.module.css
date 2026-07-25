@@ -299,3 +299,143 @@ tfoot td {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.yearSelect {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #191c1e;
+  background-color: white;
+  cursor: pointer;
+}
+.yearSelect:focus {
+  outline: none;
+  border-color: #f97316;
+}
+
+.emptyState {
+  padding: 3rem;
+  text-align: center;
+  color: #6b7280;
+  background-color: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 0.75rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.formGroup label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+.formGroup input,
+.formGroup select {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  outline: none;
+  font-size: 0.875rem;
+}
+.formGroup input:focus,
+.formGroup select:focus {
+  border-color: #f97316;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.formActions {
+  padding-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+}
+.cancelBtn:hover {
+  background-color: #f9fafb;
+}
+.saveBtn {
+  padding: 0.5rem 1.5rem;
+  background-color: #f97316;
+  color: white;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+.saveBtn:hover {
+  background-color: #9d4300;
+}
+
+.formErrorAlert {
+  padding: 0.625rem;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #b91c1c;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal {
+  background-color: white;
+  border-radius: 1rem;
+  max-width: 28rem;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.modalTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #111827;
+}
+.modalCloseButton {
+  color: #9ca3af;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.modalCloseButton:hover {
+  color: #4b5563;
+}
