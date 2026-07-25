@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/comunes/Button/Button';
 import Input from '../../components/comunes/Input/Input';
 import useAuth from '../../hooks/useAuth';
-import { isValidPassword, isValidEmail, isValidCedula } from '../../utils/validations';
+import { isValidPassword, isValidEmail, isValidCedula } from '../../utils/validators';
 import styles from './Register.module.css';
 
 const Register = () => {
