@@ -54,9 +54,30 @@ export const ENDPOINTS = {
     CREAR: `${BASE_URL}/rubros`,
     ACTUALIZAR: (id) => `${BASE_URL}/rubros/${id}`,
   },
-  FINANZAS: {
-    INGRESOS: `${BASE_URL}/ingresos`,
-    EGRESOS: `${BASE_URL}/egresos`,
+  INGRESOS: {
+    LISTAR: `${BASE_URL}/ingresos`,
+    OBTENER: (id) => `${BASE_URL}/ingresos/${id}`,
+    CREAR: `${BASE_URL}/ingresos`,
+    RESUMEN: `${BASE_URL}/ingresos/resumen`,
+    DISTRIBUCION: `${BASE_URL}/ingresos/distribucion`,
+    MIS_PAGOS: `${BASE_URL}/ingresos/mis-pagos`,
+  },
+  EGRESOS: {
+    LISTAR: `${BASE_URL}/egresos`,
+    OBTENER: (id) => `${BASE_URL}/egresos/${id}`,
+    CREAR: `${BASE_URL}/egresos`,
+    ACTUALIZAR: (id) => `${BASE_URL}/egresos/${id}`,
+    RESUMEN: `${BASE_URL}/egresos/resumen`,
+  },
+  VIVIENDAS: {
+    LISTAR: `${BASE_URL}/viviendas`,
+    OBTENER: (id) => `${BASE_URL}/viviendas/${id}`,
+  },
+  ALICUOTAS: {
+    LISTAR: `${BASE_URL}/alicuotas`,
+  },
+  MULTAS: {
+    LISTAR: `${BASE_URL}/multas`,
   },
   SEGURIDAD: {
     GENERAR_QR: `${BASE_URL}/seguridad/generar-qr`,

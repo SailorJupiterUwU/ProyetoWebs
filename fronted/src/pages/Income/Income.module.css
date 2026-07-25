@@ -331,3 +331,81 @@
   border-radius: 0.5rem; font-weight: 600; border: none; cursor: pointer;
 }
 .submitButton:hover { background: #9d4300; }
+
+.errorAlert {
+  padding: 1.5rem;
+  text-align: center;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 0.75rem;
+}
+
+.formErrorAlert {
+  padding: 0.625rem;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #b91c1c;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.tipoPagoTabs {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+}
+
+.tipoTab,
+.tipoTabActive {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tipoTab {
+  background: transparent;
+  color: #4b5563;
+}
+
+.tipoTabActive {
+  background: white;
+  color: #f97316;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.noDeuda {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.fileUploadArea {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px dashed #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: #4b5563;
+  transition: border-color 0.2s;
+}
+.fileUploadArea:hover {
+  border-color: #f97316;
+}
+
+.fileInput {
+  display: none;
+}
