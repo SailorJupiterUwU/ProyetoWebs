@@ -79,6 +79,11 @@ export const ENDPOINTS = {
   MULTAS: {
     LISTAR: `${BASE_URL}/multas`,
   },
+  REPORTES: {
+    LISTAR: `${BASE_URL}/reportes`,
+    GENERAR: `${BASE_URL}/reportes`,
+    DESCARGAR: (id) => `${BASE_URL}/reportes/${id}/descargar`,
+  },
   SEGURIDAD: {
     GENERAR_QR: `${BASE_URL}/seguridad/generar-qr`,
     VALIDAR_QR: `${BASE_URL}/seguridad/validar-qr`,

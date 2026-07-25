@@ -5,13 +5,16 @@ import Button from '../../components/comunes/Button/Button';
 import LoadingSpinner from '../../components/comunes/LoadingSpinner/LoadingSpinner';
 import useIngresos from '../../hooks/useIngresos';
 import useViviendas from '../../hooks/useViviendas';
+import useReportes from '../../hooks/useReportes';
 import useDeudaVivienda from '../../hooks/useDeudaVivienda';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import styles from './Income.module.css';
 
 const Income = () => {
-  const { data: ingresos, total, resumen, distribucion, loading, error, crearIngreso } = useIngresos();
+
   const { data: viviendas } = useViviendas();
+  const { data: ingresos, total, page, setPage, limit, resumen, distribucion, loading, error, crearIngreso } = useIngresos();
+  const { generarYDescargar, generating } = useReportes();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedVivienda, setSelectedVivienda] = useState('');
@@ -69,6 +72,13 @@ const Income = () => {
     } else {
       setFormError(result.error);
     }
+  };
+
+  const handleDownloadReport = () => {
+    const now = new Date();
+    const fecha_inicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const fecha_fin = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    generarYDescargar('INGRESOS', fecha_inicio, fecha_fin);
   };
 
   return (
@@ -167,9 +177,8 @@ const Income = () => {
                         <td className={styles.docCell}>{row.num_documento}</td>
                         <td>
                           <span
-                            className={`${styles.statusBadge} ${
-                              row.estado === 'Pagado' ? styles.statusPaid : styles.statusPending
-                            }`}
+                            className={`${styles.statusBadge} ${row.estado === 'Pagado' ? styles.statusPaid : styles.statusPending
+                              }`}
                           >
                             {row.estado}
                           </span>
@@ -182,37 +191,80 @@ const Income = () => {
             </div>
 
             <div className={styles.pagination}>
-              <span>Mostrando {ingresos.length} de {total} registros</span>
+              <span>
+                Mostrando {ingresos.length > 0 ? (page - 1) * limit + 1 : 0} a{' '}
+                {(page - 1) * limit + ingresos.length} de {total} registros
+              </span>
+              <div className={styles.pageButtons}>
+                <button
+                  className={styles.pageButton}
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Anterior
+                </button>
+                <span className={styles.pageIndicator}>
+                  Página {page} de {Math.max(1, Math.ceil(total / limit))}
+                </span>
+                <button
+                  className={styles.pageButton}
+                  disabled={page >= Math.ceil(total / limit)}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Siguiente
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Distribution */}
-        {distribucion.length > 0 && (
-          <div className={styles.panel}>
-            <h3 className={styles.panelTitle}>Distribución por Concepto</h3>
-            <div className={styles.barTrack}>
-              {distribucion.map((d, idx) => (
-                <div
-                  key={d.concepto}
-                  className={styles.barSegment}
-                  style={{
-                    width: `${d.porcentaje}%`,
-                    backgroundColor: ['#f97316', '#505f76', '#584237'][idx % 3],
-                  }}
-                />
-              ))}
+        <div className={styles.secondaryGrid}>
+          {distribucion.length > 0 && (
+            <div className={styles.panel}>
+              <h3 className={styles.panelTitle}>Distribución por Concepto</h3>
+              <div className={styles.barTrack}>
+                {distribucion.map((d, idx) => (
+                  <div
+                    key={d.concepto}
+                    className={styles.barSegment}
+                    style={{
+                      width: `${d.porcentaje}%`,
+                      backgroundColor: ['#f97316', '#505f76', '#584237'][idx % 3],
+                    }}
+                  />
+                ))}
+              </div>
+              <div className={styles.legendGrid}>
+                {distribucion.map((d) => (
+                  <div key={d.concepto} className={styles.legendItem}>
+                    <span className={styles.legendLabel}>{d.concepto}</span>
+                    <span className={styles.legendValue}>{d.porcentaje}%</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className={styles.legendGrid}>
-              {distribucion.map((d) => (
-                <div key={d.concepto} className={styles.legendItem}>
-                  <span className={styles.legendLabel}>{d.concepto}</span>
-                  <span className={styles.legendValue}>{d.porcentaje}%</span>
-                </div>
-              ))}
+          )}
+
+          <div className={`${styles.panel} ${styles.reportPanel}`}>
+            <div>
+              <h3 className={styles.panelTitle}>Reporte Consolidado</h3>
+              <p className={styles.reportText}>
+                Generar PDF detallado de todos los ingresos del mes actual.
+              </p>
+              <button
+                onClick={handleDownloadReport}
+                disabled={generating}
+                className={styles.reportButton}
+              >
+                {generating ? 'Generando PDF...' : 'Descargar Reporte'}
+              </button>
+            </div>
+            <div className={styles.reportIcon}>
+              <span className="material-symbols-outlined">picture_as_pdf</span>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Modal Nuevo Ingreso */}
@@ -300,15 +352,15 @@ const Income = () => {
                         <option value="">Selecciona...</option>
                         {tipoPago === 'alicuota'
                           ? alicuotas.map((a) => (
-                              <option key={a.id_alicuota} value={a.id_alicuota}>
-                                {a.mes}/{a.anio} — {formatPrice(a.valor_base)}
-                              </option>
-                            ))
+                            <option key={a.id_alicuota} value={a.id_alicuota}>
+                              {a.mes}/{a.anio} — {formatPrice(a.valor_base)}
+                            </option>
+                          ))
                           : multas.map((m) => (
-                              <option key={m.id_multa} value={m.id_multa}>
-                                {m.dias_atraso} días de atraso — {formatPrice(m.valor)}
-                              </option>
-                            ))}
+                            <option key={m.id_multa} value={m.id_multa}>
+                              {m.dias_atraso} días de atraso — {formatPrice(m.valor)}
+                            </option>
+                          ))}
                       </select>
                     )}
                   </div>

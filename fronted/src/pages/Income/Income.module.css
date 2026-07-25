@@ -409,3 +409,71 @@
 .fileInput {
   display: none;
 }
+
+.pageIndicator {
+  font-size: 0.75rem;
+  color: #584237;
+  font-weight: 600;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .secondaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.reportPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reportText {
+  font-size: 0.75rem;
+  color: #584237;
+  margin-top: 0.25rem;
+}
+
+.reportButton {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1.5rem;
+  border: 1px solid #f97316;
+  color: #f97316;
+  background: transparent;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.reportButton:hover {
+  background: rgba(249, 115, 22, 0.1);
+}
+.reportButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reportIcon {
+  display: none;
+  color: #e0c0b1;
+  font-size: 5rem;
+}
+@media (min-width: 1024px) {
+  .reportIcon {
+    display: block;
+  }
+}
+.reportIcon .material-symbols-outlined {
+  font-size: 80px;
+}
