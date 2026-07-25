@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/comunes/Button/Button';
 import Input from '../../components/comunes/Input/Input';
+import useAuth from '../../hooks/useAuth';
+import { isValidPassword, isValidEmail, isValidCedula } from '../../utils/validations';
 import styles from './Register.module.css';
 
 const Register = () => {
@@ -11,32 +13,94 @@ const Register = () => {
     ci_ruc: '',
     casa: '',
     correo: '',
+    password: '',
+    confirmPassword: '',
   });
+  const [formErrors, setFormErrors] = useState({});
+  const [fotoFile, setFotoFile] = useState(null);
   const [fileName, setFileName] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const { registro, loading, error } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
+      const file = e.target.files[0];
+      setFotoFile(file);
+      setFileName(file.name);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    // Simulación de envío de solicitud
-    setTimeout(() => {
-      setLoading(false);
-      alert('Solicitud enviada correctamente. La directiva revisará su acceso.');
-      navigate('/login');
-    }, 1500);
+  const validate = () => {
+    const errors = {};
+    if (!formData.nombres) errors.nombres = 'Requerido';
+    if (!formData.apellidos) errors.apellidos = 'Requerido';
+    if (!isValidCedula(formData.ci_ruc)) errors.ci_ruc = 'CI/RUC inválido';
+    if (!formData.casa) errors.casa = 'Requerido';
+    if (!isValidEmail(formData.correo)) errors.correo = 'Correo inválido';
+    if (!isValidPassword(formData.password)) {
+      errors.password = 'Mínimo 8 caracteres, una mayúscula y un número';
+    }
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+    return errors;
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    const result = await registro({
+      nombres: formData.nombres,
+      apellidos: formData.apellidos,
+      ci_ruc: formData.ci_ruc,
+      numero_vivienda: formData.casa,
+      correo_login: formData.correo,
+      password: formData.password,
+      foto: fotoFile,
+    });
+
+    if (result.success) {
+      setSubmitted(true);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.successBlock}>
+            <span className={`material-symbols-outlined ${styles.successIcon}`}>
+              check_circle
+            </span>
+            <h2 className={styles.title}>¡Solicitud Enviada!</h2>
+            <p className={styles.subtitle}>
+              Tu solicitud fue enviada correctamente. La directiva revisará tu
+              acceso y te notificaremos por correo.
+            </p>
+            <Button onClick={() => navigate('/login')} fullWidth>
+              Ir al Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -53,6 +117,8 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
+          {error && <div className={styles.errorAlert}>{error}</div>}
+
           <div className={styles.row}>
             <Input
               label="Nombres"
@@ -61,6 +127,7 @@ const Register = () => {
               onChange={handleChange}
               placeholder="Ej: Juan Pablo"
               icon="person"
+              error={formErrors.nombres}
               required
             />
             <Input
@@ -70,6 +137,7 @@ const Register = () => {
               onChange={handleChange}
               placeholder="Ej: Pérez Gómez"
               icon="person"
+              error={formErrors.apellidos}
               required
             />
           </div>
@@ -82,6 +150,7 @@ const Register = () => {
               onChange={handleChange}
               placeholder="Ej: 17XXXXXXXX"
               icon="badge"
+              error={formErrors.ci_ruc}
               required
             />
             <Input
@@ -91,6 +160,7 @@ const Register = () => {
               onChange={handleChange}
               placeholder="Ej: A-12"
               icon="home"
+              error={formErrors.casa}
               required
             />
           </div>
@@ -103,8 +173,34 @@ const Register = () => {
             onChange={handleChange}
             placeholder="correo@ejemplo.com"
             icon="mail"
+            error={formErrors.correo}
             required
           />
+
+          <div className={styles.row}>
+            <Input
+              label="Contraseña"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              icon="lock"
+              error={formErrors.password}
+              required
+            />
+            <Input
+              label="Confirmar Contraseña"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+              icon="lock"
+              error={formErrors.confirmPassword}
+              required
+            />
+          </div>
 
           <label htmlFor="fotoFile" className={styles.uploadArea}>
             <input
