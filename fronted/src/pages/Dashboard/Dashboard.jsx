@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '../../components/comunes/Layout/Layout';
+import PageHeader from '../../components/comunes/PageHeader/PageHeader';
 import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
@@ -12,6 +13,8 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className={styles.container}>
+        <PageHeader breadcrumbs={['Dashboard', 'Financiero']} title="Dashboard Financiero" subtitle="Resumen general del estado administrativo y financiero" />
+
         {/* KPI Summary Cards */}
         <section className={styles.kpiGrid}>
           <div className={styles.kpiCard}>
