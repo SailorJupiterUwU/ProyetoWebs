@@ -72,6 +72,9 @@ export const ENDPOINTS = {
   VIVIENDAS: {
     LISTAR: `${BASE_URL}/viviendas`,
     OBTENER: (id) => `${BASE_URL}/viviendas/${id}`,
+    CREAR: `${BASE_URL}/viviendas`,
+    ACTUALIZAR: (id) => `${BASE_URL}/viviendas/${id}`,
+    CAMBIAR_ESTADO: (id) => `${BASE_URL}/viviendas/${id}/estado`,
   },
   ALICUOTAS: {
     LISTAR: `${BASE_URL}/alicuotas`,
