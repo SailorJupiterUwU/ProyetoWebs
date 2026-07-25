@@ -248,7 +248,7 @@ entity "Auditoria" as Auditoria {
 
 Persona ||--o{ Usuario : "tiene cuentas"
 Rol ||--o{ Usuario : "asigna"
-Vivienda |o--o{ Usuario : "reside en (nullable)"
+Vivienda |o--|| Usuario : "reside en (representante)"
 Periodo ||--o{ Usuario : "pertenece a (si es directiva)"
 
 Rol ||--o{ RolModulo
