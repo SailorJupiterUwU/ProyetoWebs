@@ -18,6 +18,12 @@ export const ENDPOINTS = {
     ACTUALIZAR: (id) => `${BASE_URL}/usuarios/${id}`,
     CAMBIAR_ESTADO: (id) => `${BASE_URL}/usuarios/${id}/estado`,
     HISTORIAL: (id) => `${BASE_URL}/usuarios/${id}/historial`,
+    SOLICITUDES: {
+      LISTAR: `${BASE_URL}/usuarios/solicitudes`,
+      HISTORIAL: `${BASE_URL}/usuarios/solicitudes/historial`,
+      APROBAR: (id) => `${BASE_URL}/usuarios/solicitudes/${id}/aprobar`,
+      RECHAZAR: (id) => `${BASE_URL}/usuarios/solicitudes/${id}/rechazar`,
+    },
   },
   CASAS: {
     LISTAR: `${BASE_URL}/casas`,
@@ -28,11 +34,10 @@ export const ENDPOINTS = {
   },
   ROLES: {
     LISTAR: `${BASE_URL}/roles`,
-    OBTENER: (id) => `${BASE_URL}/roles/${id}`,
     CREAR: `${BASE_URL}/roles`,
     ACTUALIZAR: (id) => `${BASE_URL}/roles/${id}`,
     CAMBIAR_ESTADO: (id) => `${BASE_URL}/roles/${id}/estado`,
-    ELIMINAR: (id) => `${BASE_URL}/roles/${id}`,
+    MODULOS: (id) => `${BASE_URL}/roles/${id}/modulos`,
   },
   PRESUPUESTO: {
     LISTAR: `${BASE_URL}/presupuesto`,
