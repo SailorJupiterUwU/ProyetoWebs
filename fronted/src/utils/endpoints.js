@@ -72,6 +72,9 @@ export const ENDPOINTS = {
   VIVIENDAS: {
     LISTAR: `${BASE_URL}/viviendas`,
     OBTENER: (id) => `${BASE_URL}/viviendas/${id}`,
+    CREAR: `${BASE_URL}/viviendas`,
+    ACTUALIZAR: (id) => `${BASE_URL}/viviendas/${id}`,
+    CAMBIAR_ESTADO: (id) => `${BASE_URL}/viviendas/${id}/estado`,
   },
   ALICUOTAS: {
     LISTAR: `${BASE_URL}/alicuotas`,
@@ -84,11 +87,31 @@ export const ENDPOINTS = {
     GENERAR: `${BASE_URL}/reportes`,
     DESCARGAR: (id) => `${BASE_URL}/reportes/${id}/descargar`,
   },
-  SEGURIDAD: {
-    GENERAR_QR: `${BASE_URL}/seguridad/generar-qr`,
-    VALIDAR_QR: `${BASE_URL}/seguridad/validar-qr`,
-    HISTORIAL_ACCESOS: `${BASE_URL}/seguridad/accesos`,
-  }
+  PROVEEDORES: {
+    LISTAR: `${BASE_URL}/proveedores`,
+    CREAR: `${BASE_URL}/proveedores`,
+    ACTUALIZAR: (id) => `${BASE_URL}/proveedores/${id}`,
+  },
+  VISITANTES: {
+    LISTAR: `${BASE_URL}/visitantes`,
+    OBTENER: (id) => `${BASE_URL}/visitantes/${id}`,
+    CREAR: `${BASE_URL}/visitantes`,
+  },
+  QR: {
+    VALIDAR: `${BASE_URL}/qr/validar`,
+    INGRESO: (id) => `${BASE_URL}/qr/${id}/ingreso`,
+    SALIDA: (id) => `${BASE_URL}/qr/${id}/salida`,
+    REVOCAR: (id) => `${BASE_URL}/qr/${id}/revocar`,
+  },
+  AUDITORIA: {
+    LISTAR: `${BASE_URL}/auditoria`,
+  },
+  DASHBOARD: {
+    RESUMEN: `${BASE_URL}/dashboard/resumen`,
+    INGRESOS_VS_EGRESOS: `${BASE_URL}/dashboard/ingresos-vs-egresos`,
+    CARTERA: `${BASE_URL}/dashboard/cartera`,
+    MOVIMIENTOS_RECIENTES: `${BASE_URL}/dashboard/movimientos-recientes`,
+  },
 };
 
 export default ENDPOINTS;

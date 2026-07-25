@@ -25,7 +25,48 @@ const useViviendas = () => {
     fetchViviendas();
   }, [fetchViviendas]);
 
-  return { data, loading, error, refetch: fetchViviendas };
+  const crearVivienda = async ({ numero, porcentaje_alicuota }) => {
+    try {
+      const { data: res } = await api.post(ENDPOINTS.VIVIENDAS.CREAR, {
+        numero,
+        porcentaje_alicuota,
+      });
+      await fetchViviendas();
+      return { success: true, id: res.id_vivienda };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  const editarVivienda = async (id, cambios) => {
+    try {
+      await api.put(ENDPOINTS.VIVIENDAS.ACTUALIZAR(id), cambios);
+      await fetchViviendas();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  const cambiarEstado = async (id, estado) => {
+    try {
+      await api.patch(ENDPOINTS.VIVIENDAS.CAMBIAR_ESTADO(id), { estado });
+      await fetchViviendas();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchViviendas,
+    crearVivienda,
+    editarVivienda,
+    cambiarEstado,
+  };
 };
 
 export default useViviendas;

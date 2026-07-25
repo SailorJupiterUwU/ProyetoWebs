@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import styles from './Expenses.module.css';
 import Layout from '../../components/comunes/Layout/Layout';
 import PageHeader from '../../components/comunes/PageHeader/PageHeader';
+import Button from '../../components/comunes/Button/Button';
+import LoadingSpinner from '../../components/comunes/LoadingSpinner/LoadingSpinner';
+import useEgresos from '../../hooks/useEgresos';
+import useProveedores from '../../hooks/useProveedores';
+import useRubros from '../../hooks/useRubros';
+import useReportes from '../../hooks/useReportes';
+import { formatPrice, formatDate } from '../../utils/helpers';
+import styles from './Expenses.module.css';
 
 const Expenses = () => {
-    const [expenses, setExpenses] = useState([]);
+    const { data: expenses, total, page, setPage, limit, resumen, loading, error, applyFilters, crearEgreso, editarEgreso } = useEgresos();
+    const { data: proveedores } = useProveedores();
+    const { data: rubros } = useRubros();
+    const { generarYDescargar, generating } = useReportes();
 
-    const onAddExpense = (newExpense) => {
-        setExpenses((prev) => [newExpense, ...prev]);
-    };
+    const rubrosEgreso = rubros.filter((r) => r.tipo === 'EGRESO');
 
     const [filterDate, setFilterDate] = useState('');
     const [filterDoc, setFilterDoc] = useState('');
@@ -19,65 +27,102 @@ const Expenses = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedDetail, setSelectedDetail] = useState(null);
 
-    const [newProvider, setNewProvider] = useState('');
-    const [newConcept, setNewConcept] = useState('');
-    const [newAmount, setNewAmount] = useState('');
-    const [newDocNumber, setNewDocNumber] = useState('');
-    const [newAutoDebit, setNewAutoDebit] = useState('No');
-    const [newStatus, setNewStatus] = useState('Pagado');
+    const [newProveedorId, setNewProveedorId] = useState('');
+    const [newRubroId, setNewRubroId] = useState('');
+    const [newFactura, setNewFactura] = useState('');
+    const [newFecha, setNewFecha] = useState('');
+    const [newValor, setNewValor] = useState('');
+    const [newCheque, setNewCheque] = useState('');
+    const [newAutoDebit, setNewAutoDebit] = useState(false);
+    const [formError, setFormError] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
-    const filteredExpenses = expenses.filter((item) => {
-        if (filterDate && !item.date.includes(filterDate)) return false;
-        if (filterDoc && !item.docNumber.toLowerCase().includes(filterDoc.toLowerCase())) return false;
-        if (filterStatus && item.status.toLowerCase() !== filterStatus.toLowerCase()) return false;
-        if (minAmount && item.amount < Number(minAmount)) return false;
-        if (maxAmount && item.amount > Number(maxAmount)) return false;
-        return true;
-    });
+    const applyTableFilters = () => {
+        applyFilters({
+            fecha: filterDate,
+            num_factura: filterDoc,
+            estado: filterStatus,
+            monto_min: minAmount,
+            monto_max: maxAmount,
+        });
+    };
 
-    const totalMonthlyExpenses = expenses
-        .filter((e) => e.status === 'Pagado')
-        .reduce((sum, e) => sum + e.amount, 0);
+    const clearFilters = () => {
+        setFilterDate('');
+        setFilterDoc('');
+        setFilterStatus('');
+        setMinAmount('');
+        setMaxAmount('');
+        applyFilters({});
+    };
 
-    const totalPendingExpenses = expenses
-        .filter((e) => e.status === 'Pendiente')
-        .reduce((sum, e) => sum + e.amount, 0);
+    const resetForm = () => {
+        setNewProveedorId('');
+        setNewRubroId('');
+        setNewFactura('');
+        setNewFecha('');
+        setNewValor('');
+        setNewCheque('');
+        setNewAutoDebit(false);
+        setFormError(null);
+    };
 
-    const pendingCount = expenses.filter((e) => e.status === 'Pendiente').length;
-
-    const handleAddSubmit = (e) => {
+    const handleAddSubmit = async (e) => {
         e.preventDefault();
-        const newItem = {
-            id: 'e' + Date.now(),
-            date: new Date().toISOString().split('T')[0],
-            provider: newProvider || 'Proveedor Genérico',
-            concept: newConcept || 'Gasto Operativo',
-            amount: parseFloat(newAmount) || 100.0,
-            docNumber: newDocNumber || `FAC-${Math.floor(1000 + Math.random() * 9000)}`,
-            autoDebit: newAutoDebit,
-            status: newStatus,
-        };
-        onAddExpense(newItem);
-        setShowAddModal(false);
-        setNewProvider('');
-        setNewConcept('');
-        setNewAmount('');
-        setNewDocNumber('');
+        setFormError(null);
+        setSubmitting(true);
+        const result = await crearEgreso({
+            id_proveedor: Number(newProveedorId),
+            id_rubro: Number(newRubroId),
+            num_factura: newFactura,
+            fecha_comprobante: newFecha,
+            valor: parseFloat(newValor),
+            num_cheque: newCheque || undefined,
+            debito_automatico: newAutoDebit,
+        });
+        setSubmitting(false);
+
+        if (result.success) {
+            setShowAddModal(false);
+            resetForm();
+        } else {
+            setFormError(result.error);
+        }
+    };
+
+    const handleMarkAsPaid = async (row) => {
+        await editarEgreso(row.id_egreso, { estado: 'Pagado' });
+    };
+
+    const handleDownloadReport = () => {
+        const now = new Date();
+        const fecha_inicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const fecha_fin = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        generarYDescargar('EGRESOS', fecha_inicio, fecha_fin);
     };
 
     return (
         <Layout>
             <div className={styles.container}>
-                {/* Page Header */}
                 <PageHeader
                     breadcrumbs={['Finanzas', 'Egresos']}
                     title="Registro de Egresos"
                     subtitle="Gestión y control detallado de pagos, facturas y proveedores."
                     action={
-                        <button onClick={() => setShowAddModal(true)} className={styles.addButton}>
-                            <span className="material-symbols-outlined">add</span>
-                            <span>Nuevo Egreso</span>
-                        </button>
+                        <div className={styles.headerActions}>
+                            <Button
+                                variant="outline"
+                                onClick={handleDownloadReport}
+                                loading={generating}
+                                icon="download"
+                                iconPosition="left"
+                            >
+                                Reporte
+                            </Button>
+                            <Button variant="primary" onClick={() => setShowAddModal(true)} icon="add" iconPosition="left">
+                                Nuevo Egreso
+                            </Button>
+                        </div>
                     }
                 />
 
@@ -85,32 +130,25 @@ const Expenses = () => {
                 <div className={styles.cardsGrid}>
                     <div className={styles.card}>
                         <span className={styles.cardLabel}>Egresos del Mes</span>
-                        <span className={styles.cardValue}>
-                            ${totalMonthlyExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </span>
+                        <span className={styles.cardValue}>{formatPrice(resumen.egresos_del_mes)}</span>
                         <div className={styles.cardTrendUp}>
                             <span className="material-symbols-outlined">arrow_upward</span>
-                            <span>+12% vs mes anterior</span>
+                            <span>{resumen.variacion_pct >= 0 ? '+' : ''}{resumen.variacion_pct}% vs mes anterior</span>
                         </div>
                     </div>
 
                     <div className={styles.card}>
                         <span className={styles.cardLabel}>Pagos Pendientes</span>
-                        <span className={styles.cardValue}>
-                            ${totalPendingExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </span>
+                        <span className={styles.cardValue}>{formatPrice(resumen.pagos_pendientes)}</span>
                         <div className={styles.cardTrendWarn}>
                             <span className="material-symbols-outlined">warning</span>
-                            <span>{pendingCount} facturas por vencer</span>
+                            <span>{resumen.facturas_por_vencer} facturas por vencer</span>
                         </div>
                     </div>
 
                     <div className={styles.card}>
                         <span className={styles.cardLabel}>Presupuesto Restante</span>
-                        <span className={styles.cardValue}>$4,300.00</span>
-                        <div className={styles.progressTrack}>
-                            <div className={styles.progressFill} style={{ width: '65%' }} />
-                        </div>
+                        <span className={styles.cardValue}>{formatPrice(resumen.presupuesto_restante)}</span>
                     </div>
                 </div>
 
@@ -149,8 +187,8 @@ const Expenses = () => {
                                     className={styles.filterInput}
                                 >
                                     <option value="">Todos</option>
-                                    <option value="pagado">Pagado</option>
-                                    <option value="pendiente">Pendiente</option>
+                                    <option value="Pagado">Pagado</option>
+                                    <option value="Pendiente">Pendiente</option>
                                 </select>
                             </div>
 
@@ -175,248 +213,289 @@ const Expenses = () => {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => {
-                                    setFilterDate('');
-                                    setFilterDoc('');
-                                    setFilterStatus('');
-                                    setMinAmount('');
-                                    setMaxAmount('');
-                                }}
-                                className={styles.clearButton}
-                            >
+                            <button onClick={applyTableFilters} className={styles.applyButton}>
                                 <span className="material-symbols-outlined">filter_alt</span>
                                 <span>Aplicar Filtros</span>
+                            </button>
+                            <button onClick={clearFilters} className={styles.clearButton}>
+                                <span className="material-symbols-outlined">close</span>
+                                <span>Limpiar</span>
                             </button>
                         </div>
                     </div>
 
-                    <div className={styles.tableWrapper}>
-                        <table className={styles.table}>
-                            <thead>
-                                <tr className={styles.theadRow}>
-                                    <th className={styles.th}>Fecha</th>
-                                    <th className={styles.th}>Proveedor</th>
-                                    <th className={styles.th}>Concepto</th>
-                                    <th className={`${styles.th} ${styles.thRight}`}>Monto</th>
-                                    <th className={styles.th}>Nº Documento</th>
-                                    <th className={styles.th}>Débito Automático</th>
-                                    <th className={`${styles.th} ${styles.thCenter}`}>Estado</th>
-                                    <th className={`${styles.th} ${styles.thCenter}`}>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className={styles.tbody}>
-                                {filteredExpenses.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className={styles.emptyCell}>
-                                            No se encontraron egresos con los filtros aplicados.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredExpenses.map((row, idx) => (
-                                        <tr
-                                            key={row.id}
-                                            className={`${styles.row} ${idx % 2 === 1 ? styles.rowAlt : ''}`}
-                                        >
-                                            <td className={styles.dateCell}>{row.date}</td>
-                                            <td className={styles.providerCell}>{row.provider}</td>
-                                            <td>{row.concept}</td>
-                                            <td className={styles.amountCell}>${row.amount.toFixed(2)}</td>
-                                            <td className={styles.docCell}>{row.docNumber}</td>
-                                            <td>{row.autoDebit}</td>
-                                            <td className={styles.statusCellWrap}>
-                                                <span
-                                                    className={`${styles.statusBadge} ${row.status === 'Pagado' ? styles.statusPaid : styles.statusPending
-                                                        }`}
-                                                >
-                                                    {row.status}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div className={styles.actionsCell}>
-                                                    <button className={styles.iconButton} title="Editar">
-                                                        <span className="material-symbols-outlined">edit</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setSelectedDetail(row)}
-                                                        className={styles.iconButton}
-                                                        title="Ver Detalles"
-                                                    >
-                                                        <span className="material-symbols-outlined">visibility</span>
-                                                    </button>
-                                                </div>
-                                            </td>
+                    {loading ? (
+                        <LoadingSpinner />
+                    ) : error ? (
+                        <div className={styles.errorAlert}>{error}</div>
+                    ) : (
+                        <>
+                            <div className={styles.tableWrapper}>
+                                <table className={styles.table}>
+                                    <thead>
+                                        <tr className={styles.theadRow}>
+                                            <th className={styles.th}>Fecha</th>
+                                            <th className={styles.th}>Proveedor</th>
+                                            <th className={styles.th}>Rubro</th>
+                                            <th className={`${styles.th} ${styles.thRight}`}>Monto</th>
+                                            <th className={styles.th}>Nº Factura</th>
+                                            <th className={styles.th}>Débito Automático</th>
+                                            <th className={`${styles.th} ${styles.thCenter}`}>Estado</th>
+                                            <th className={`${styles.th} ${styles.thCenter}`}>Acciones</th>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    </thead>
+                                    <tbody className={styles.tbody}>
+                                        {expenses.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={8} className={styles.emptyCell}>
+                                                    No se encontraron egresos con los filtros aplicados.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            expenses.map((row, idx) => (
+                                                <tr key={row.id_egreso} className={`${styles.row} ${idx % 2 === 1 ? styles.rowAlt : ''}`}>
+                                                    <td className={styles.dateCell}>{formatDate(row.fecha_comprobante)}</td>
+                                                    <td className={styles.providerCell}>{row.proveedor_nombre}</td>
+                                                    <td>{row.rubro_nombre}</td>
+                                                    <td className={styles.amountCell}>{formatPrice(row.valor)}</td>
+                                                    <td className={styles.docCell}>{row.num_factura}</td>
+                                                    <td>{row.debito_automatico ? 'Sí' : 'No'}</td>
+                                                    <td className={styles.statusCellWrap}>
+                                                        <span
+                                                            className={`${styles.statusBadge} ${row.estado === 'Pagado' ? styles.statusPaid : styles.statusPending
+                                                                }`}
+                                                        >
+                                                            {row.estado}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className={styles.actionsCell}>
+                                                            <button
+                                                                onClick={() => setSelectedDetail(row)}
+                                                                className={styles.iconButton}
+                                                                title="Ver Detalles"
+                                                            >
+                                                                <span className="material-symbols-outlined">visibility</span>
+                                                            </button>
+                                                            {row.estado === 'Pendiente' && (
+                                                                <button
+                                                                    onClick={() => handleMarkAsPaid(row)}
+                                                                    className={styles.iconButton}
+                                                                    title="Marcar como Pagado"
+                                                                >
+                                                                    <span className="material-symbols-outlined">check_circle</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                    <div className={styles.pagination}>
-                        <span>
-                            Mostrando 1 a {filteredExpenses.length} de {expenses.length} registros
-                        </span>
-                        <div className={styles.pageButtons}>
-                            <button className={styles.pageButton} disabled>Anterior</button>
-                            <button className={`${styles.pageButton} ${styles.pageButtonActive}`}>1</button>
-                            <button className={styles.pageButton}>2</button>
-                            <button className={styles.pageButton}>3</button>
-                            <button className={styles.pageButton}>Siguiente</button>
+                            <div className={styles.pagination}>
+                                <span>
+                                    Mostrando {expenses.length > 0 ? (page - 1) * limit + 1 : 0} a{' '}
+                                    {(page - 1) * limit + expenses.length} de {total} registros
+                                </span>
+                                <div className={styles.pageButtons}>
+                                    <button className={styles.pageButton} disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                                        Anterior
+                                    </button>
+                                    <span className={styles.pageIndicator}>
+                                        Página {page} de {Math.max(1, Math.ceil(total / limit))}
+                                    </span>
+                                    <button
+                                        className={styles.pageButton}
+                                        disabled={page >= Math.ceil(total / limit)}
+                                        onClick={() => setPage(page + 1)}
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Add Expense Modal */}
+            {showAddModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <div className={styles.modalHeader}>
+                            <h3 className={styles.modalTitle}>Registrar Nuevo Egreso</h3>
+                            <button
+                                onClick={() => {
+                                    setShowAddModal(false);
+                                    resetForm();
+                                }}
+                                className={styles.modalCloseButton}
+                            >
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddSubmit} className={styles.form}>
+                            {formError && <div className={styles.formErrorAlert}>{formError}</div>}
+
+                            <div className={styles.formField}>
+                                <label className={styles.formLabel}>Proveedor</label>
+                                <select
+                                    value={newProveedorId}
+                                    onChange={(e) => setNewProveedorId(e.target.value)}
+                                    className={styles.formInput}
+                                    required
+                                >
+                                    <option value="">Selecciona un proveedor...</option>
+                                    {proveedores.map((p) => (
+                                        <option key={p.id_proveedor} value={p.id_proveedor}>
+                                            {p.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className={styles.formField}>
+                                <label className={styles.formLabel}>Rubro</label>
+                                <select
+                                    value={newRubroId}
+                                    onChange={(e) => setNewRubroId(e.target.value)}
+                                    className={styles.formInput}
+                                    required
+                                >
+                                    <option value="">Selecciona un rubro...</option>
+                                    {rubrosEgreso.map((r) => (
+                                        <option key={r.id_rubro} value={r.id_rubro}>
+                                            {r.codigo} — {r.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className={styles.formGrid2}>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>Monto ($)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={newValor}
+                                        onChange={(e) => setNewValor(e.target.value)}
+                                        className={styles.formInput}
+                                        required
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>Nº Factura</label>
+                                    <input
+                                        type="text"
+                                        placeholder="FAC-1029"
+                                        value={newFactura}
+                                        onChange={(e) => setNewFactura(e.target.value)}
+                                        className={styles.formInput}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.formGrid2}>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>Fecha del Comprobante</label>
+                                    <input
+                                        type="date"
+                                        value={newFecha}
+                                        onChange={(e) => setNewFecha(e.target.value)}
+                                        className={styles.formInput}
+                                        required
+                                    />
+                                </div>
+                                <div className={styles.formField}>
+                                    <label className={styles.formLabel}>Nº Cheque (opcional)</label>
+                                    <input
+                                        type="text"
+                                        value={newCheque}
+                                        onChange={(e) => setNewCheque(e.target.value)}
+                                        className={styles.formInput}
+                                    />
+                                </div>
+                            </div>
+
+                            <label className={styles.checkboxRow}>
+                                <input
+                                    type="checkbox"
+                                    checked={newAutoDebit}
+                                    onChange={(e) => setNewAutoDebit(e.target.checked)}
+                                />
+                                <span>Débito Automático</span>
+                            </label>
+
+                            <div className={styles.formActions}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowAddModal(false);
+                                        resetForm();
+                                    }}
+                                    className={styles.cancelButton}
+                                >
+                                    Cancelar
+                                </button>
+                                <button type="submit" className={styles.submitButton} disabled={submitting}>
+                                    {submitting ? 'Guardando...' : 'Guardar Egreso'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Detail Modal */}
+            {selectedDetail && (
+                <div className={styles.modalOverlay}>
+                    <div className={`${styles.modal} ${styles.modalSm}`}>
+                        <div className={styles.modalHeader}>
+                            <h3 className={styles.modalTitle}>Detalle del Egreso</h3>
+                            <button onClick={() => setSelectedDetail(null)} className={styles.modalCloseButton}>
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div className={styles.detailList}>
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Proveedor:</span>
+                                <span className={styles.detailValueBold}>{selectedDetail.proveedor_nombre}</span>
+                            </div>
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Rubro:</span>
+                                <span>{selectedDetail.rubro_nombre}</span>
+                            </div>
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Monto:</span>
+                                <span className={styles.detailValueLarge}>{formatPrice(selectedDetail.valor)}</span>
+                            </div>
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Nº Factura:</span>
+                                <span className={styles.detailMono}>{selectedDetail.num_factura}</span>
+                            </div>
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Estado:</span>
+                                <span
+                                    className={`${styles.statusBadge} ${selectedDetail.estado === 'Pagado' ? styles.statusPaid : styles.statusPending
+                                        }`}
+                                >
+                                    {selectedDetail.estado}
+                                </span>
+                            </div>
+                        </div>
+                        <div className={styles.detailFooter}>
+                            <button onClick={() => setSelectedDetail(null)} className={styles.closeButton}>
+                                Cerrar
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                {/* Add Expense Modal */}
-                {showAddModal && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modal}>
-                            <div className={styles.modalHeader}>
-                                <h3 className={styles.modalTitle}>Registrar Nuevo Egreso</h3>
-                                <button onClick={() => setShowAddModal(false)} className={styles.modalCloseButton}>
-                                    <span className="material-symbols-outlined">close</span>
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleAddSubmit} className={styles.form}>
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>Proveedor</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ej. Empresa Eléctrica"
-                                        value={newProvider}
-                                        onChange={(e) => setNewProvider(e.target.value)}
-                                        className={styles.formInput}
-                                        required
-                                    />
-                                </div>
-
-                                <div className={styles.formField}>
-                                    <label className={styles.formLabel}>Concepto</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ej. Mantenimiento de Áreas Verdes"
-                                        value={newConcept}
-                                        onChange={(e) => setNewConcept(e.target.value)}
-                                        className={styles.formInput}
-                                        required
-                                    />
-                                </div>
-
-                                <div className={styles.formGrid2}>
-                                    <div className={styles.formField}>
-                                        <label className={styles.formLabel}>Monto ($)</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="120.00"
-                                            value={newAmount}
-                                            onChange={(e) => setNewAmount(e.target.value)}
-                                            className={styles.formInput}
-                                            required
-                                        />
-                                    </div>
-                                    <div className={styles.formField}>
-                                        <label className={styles.formLabel}>Nº Documento/Factura</label>
-                                        <input
-                                            type="text"
-                                            placeholder="FAC-1029"
-                                            value={newDocNumber}
-                                            onChange={(e) => setNewDocNumber(e.target.value)}
-                                            className={styles.formInput}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className={styles.formGrid2}>
-                                    <div className={styles.formField}>
-                                        <label className={styles.formLabel}>Débito Automático</label>
-                                        <select
-                                            value={newAutoDebit}
-                                            onChange={(e) => setNewAutoDebit(e.target.value)}
-                                            className={styles.formInput}
-                                        >
-                                            <option value="No">No</option>
-                                            <option value="Sí">Sí</option>
-                                        </select>
-                                    </div>
-                                    <div className={styles.formField}>
-                                        <label className={styles.formLabel}>Estado</label>
-                                        <select
-                                            value={newStatus}
-                                            onChange={(e) => setNewStatus(e.target.value)}
-                                            className={styles.formInput}
-                                        >
-                                            <option value="Pagado">Pagado</option>
-                                            <option value="Pendiente">Pendiente</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className={styles.formActions}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAddModal(false)}
-                                        className={styles.cancelButton}
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button type="submit" className={styles.submitButton}>
-                                        Guardar Egreso
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Detail Modal */}
-                {selectedDetail && (
-                    <div className={styles.modalOverlay}>
-                        <div className={`${styles.modal} ${styles.modalSm}`}>
-                            <div className={styles.modalHeader}>
-                                <h3 className={styles.modalTitle}>Detalle del Egreso</h3>
-                                <button onClick={() => setSelectedDetail(null)} className={styles.modalCloseButton}>
-                                    <span className="material-symbols-outlined">close</span>
-                                </button>
-                            </div>
-                            <div className={styles.detailList}>
-                                <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Proveedor:</span>
-                                    <span className={styles.detailValueBold}>{selectedDetail.provider}</span>
-                                </div>
-                                <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Concepto:</span>
-                                    <span>{selectedDetail.concept}</span>
-                                </div>
-                                <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Monto:</span>
-                                    <span className={styles.detailValueLarge}>${selectedDetail.amount.toFixed(2)}</span>
-                                </div>
-                                <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Nº Documento:</span>
-                                    <span className={styles.detailMono}>{selectedDetail.docNumber}</span>
-                                </div>
-                                <div className={styles.detailRow}>
-                                    <span className={styles.detailLabel}>Estado:</span>
-                                    <span
-                                        className={`${styles.statusBadge} ${selectedDetail.status === 'Pagado' ? styles.statusPaid : styles.statusPending
-                                            }`}
-                                    >
-                                        {selectedDetail.status}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className={styles.detailFooter}>
-                                <button onClick={() => setSelectedDetail(null)} className={styles.closeButton}>
-                                    Cerrar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+            )}
         </Layout>
     );
 };

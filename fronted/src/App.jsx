@@ -13,6 +13,7 @@ import Income from './pages/Income/Income';
 import Roles from './pages/Roles/Roles';
 import GeneratePass from './pages/Security/GeneratePass/GeneratePass';
 import Scanner from './pages/Security/Scanner/Scanner';
+import Houses from './pages/Houses/Houses';
 import LoadingSpinner from './components/comunes/LoadingSpinner/LoadingSpinner';
 import './App.module.css';
 
@@ -24,7 +25,7 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) return <LoadingSpinner fullScreen />;
 
-  return isAuthenticated ? {children}: <Navigate to="/login" />;
+  return isAuthenticated ? { children } : <Navigate to="/login" />;
 };
 
 /**
@@ -44,73 +45,82 @@ const App = () => {
           <Route
             path="/"
             element={
-              
-                <Dashboard />
-              
+
+              <Dashboard />
+
             }
           />
           <Route
             path="/usuarios"
             element={
-              
-                <Users />
-              
+
+              <Users />
+
             }
           />
           <Route
             path="/presupuesto"
             element={
-              
-                <Budgets />
-              
+
+              <Budgets />
+
             }
           />
           <Route
             path="/egresos"
             element={
-              
-                <Expenses />
-              
+
+              <Expenses />
+
             }
           />
           <Route
             path="/ingresos"
             element={
-              
-                <Income />
-              
+
+              <Income />
+
             }
           />
           <Route
             path="/seguridad/generar"
             element={
-              
-                <GeneratePass />
-              
+
+              <GeneratePass />
+
             }
           />
           <Route
             path="/seguridad/escanear"
             element={
-              
-                <Scanner />
-              
+
+              <Scanner />
+
             }
           />
           <Route
             path="/auditoria"
             element={
-              
-                <Audit />
-              
+
+              <Audit />
+
             }
           />
 
           <Route
             path="/roles"
             element={
+
+              <Roles />
+
+            }
+          />
+
+          <Route
+            path="/casas"
+            element={
               
-                <Roles />
+                <Houses />
               
             }
           />
