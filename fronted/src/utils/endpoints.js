@@ -89,10 +89,16 @@ export const ENDPOINTS = {
     CREAR: `${BASE_URL}/proveedores`,
     ACTUALIZAR: (id) => `${BASE_URL}/proveedores/${id}`,
   },
-  SEGURIDAD: {
-    GENERAR_QR: `${BASE_URL}/seguridad/generar-qr`,
-    VALIDAR_QR: `${BASE_URL}/seguridad/validar-qr`,
-    HISTORIAL_ACCESOS: `${BASE_URL}/seguridad/accesos`,
+  VISITANTES: {
+    LISTAR: `${BASE_URL}/visitantes`,
+    OBTENER: (id) => `${BASE_URL}/visitantes/${id}`,
+    CREAR: `${BASE_URL}/visitantes`,
+  },
+  QR: {
+    VALIDAR: `${BASE_URL}/qr/validar`,
+    INGRESO: (id) => `${BASE_URL}/qr/${id}/ingreso`,
+    SALIDA: (id) => `${BASE_URL}/qr/${id}/salida`,
+    REVOCAR: (id) => `${BASE_URL}/qr/${id}/revocar`,
   }
 };
 
