@@ -103,6 +103,12 @@ export const ENDPOINTS = {
   AUDITORIA: {
     LISTAR: `${BASE_URL}/auditoria`,
   },
+  DASHBOARD: {
+    RESUMEN: `${BASE_URL}/dashboard/resumen`,
+    INGRESOS_VS_EGRESOS: `${BASE_URL}/dashboard/ingresos-vs-egresos`,
+    CARTERA: `${BASE_URL}/dashboard/cartera`,
+    MOVIMIENTOS_RECIENTES: `${BASE_URL}/dashboard/movimientos-recientes`,
+  },
 };
 
 export default ENDPOINTS;
