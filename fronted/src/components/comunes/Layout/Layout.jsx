@@ -5,14 +5,14 @@ import { useAuthContext } from '../../../context/AuthContext';
 import styles from './Layout.module.css';
 
 const NAV_ITEMS = [
-  { to: '/', icon: 'dashboard', label: 'Dashboard', roles: ['Directiva'] },
-  { to: '/usuarios', icon: 'group', label: 'Usuarios', roles: ['Directiva'] },
-  { to: '/roles', icon: 'shield_person', label: 'Roles', roles: ['Directiva'] },
-  { to: '/presupuesto', icon: 'account_balance_wallet', label: 'Presupuestos', roles: ['Directiva'] },
-  { to: '/ingresos', icon: 'receipt_long', label: 'Ingresos', roles: ['Directiva', 'Residente'] },
-  { to: '/egresos', icon: 'trending_down', label: 'Egresos', roles: ['Directiva'] },
-  { to: '/seguridad/generar', icon: 'qr_code_2', label: 'Control QR', roles: ['Directiva', 'Residente', 'Guardia'] },
-  { to: '/auditoria', icon: 'change_history', label: 'Auditoría', roles: ['Directiva'] },
+  { to: '/', icon: 'dashboard', label: 'Dashboard', modulo: 'Dashboard', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/usuarios', icon: 'group', label: 'Usuarios', modulo: 'Usuarios', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/roles', icon: 'shield_person', label: 'Roles', modulo: 'Roles', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/presupuesto', icon: 'account_balance_wallet', label: 'Presupuestos', modulo: 'Presupuestos', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/ingresos', icon: 'receipt_long', label: 'Ingresos', modulo: 'Ingresos', roles: ['Directiva', 'Residente', 'Admin', 'Presidenta'] },
+  { to: '/egresos', icon: 'trending_down', label: 'Egresos', modulo: 'Egresos', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/seguridad/generar', icon: 'qr_code_2', label: 'Control QR', modulo: 'Control QR', roles: ['Directiva', 'Residente', 'Guardia', 'Admin', 'Presidenta'] },
+  { to: '/auditoria', icon: 'change_history', label: 'Auditoría', modulo: 'Auditoria', roles: ['Directiva', 'Admin', 'Presidenta'] },
 ];
 
 const Layout = ({ children }) => {
@@ -25,7 +25,23 @@ const Layout = ({ children }) => {
     navigate('/login');
   };
 
-  const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(user?.rol));
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    // 1. Filtrado dinámico por módulos devueltos por el backend (Opción B)
+    if (Array.isArray(user?.modulos) && user.modulos.length > 0) {
+      return user.modulos.some(
+        (m) =>
+          typeof m === 'string' &&
+          (m.toLowerCase() === item.modulo.toLowerCase() ||
+           m.toLowerCase() === item.label.toLowerCase())
+      );
+    }
+
+    // 2. Fallback retrocompatible por rol (string u objeto)
+    const userRole = typeof user?.rol === 'object' ? user?.rol?.nombre : user?.rol;
+    return item.roles.some(
+      (r) => typeof r === 'string' && r.toLowerCase() === userRole?.toLowerCase()
+    );
+  });
 
   return (
     <div className={styles.layout}>
@@ -68,7 +84,9 @@ const Layout = ({ children }) => {
             {!collapsed && (
               <div className={styles.userDetails}>
                 <p className={styles.userName}>{user?.nombres} {user?.apellidos}</p>
-                <p className={styles.userRole}>Rol: {user?.rol}</p>
+                <p className={styles.userRole}>
+                  Rol: {typeof user?.rol === 'object' ? user?.rol?.nombre : (user?.rol || 'Usuario')}
+                </p>
               </div>
             )}
           </div>
