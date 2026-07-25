@@ -95,6 +95,7 @@ const useIngresos = () => {
     total,
     page,
     setPage,
+    limit,
     resumen,
     distribucion,
     loading,
