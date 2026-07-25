@@ -40,11 +40,19 @@ export const ENDPOINTS = {
     MODULOS: (id) => `${BASE_URL}/roles/${id}/modulos`,
   },
   PRESUPUESTO: {
-    LISTAR: `${BASE_URL}/presupuesto`,
-    OBTENER: (id) => `${BASE_URL}/presupuesto/${id}`,
-    PROYECTAR: `${BASE_URL}/presupuesto/proyectar`,
-    CARGAR: `${BASE_URL}/presupuesto/cargar`,
-    CONFIRMAR: `${BASE_URL}/presupuesto/confirmar`,
+    LISTAR: `${BASE_URL}/presupuestos`,
+    OBTENER: (id) => `${BASE_URL}/presupuestos/${id}`,
+    IMPORTAR: `${BASE_URL}/presupuestos/importar`,
+    RUBROS: {
+      LISTAR: (id) => `${BASE_URL}/presupuestos/${id}/rubros`,
+      AGREGAR: (id) => `${BASE_URL}/presupuestos/${id}/rubros`,
+      EDITAR_MONTO: (id, idRubro) => `${BASE_URL}/presupuestos/${id}/rubros/${idRubro}`,
+    },
+  },
+  RUBROS: {
+    LISTAR: `${BASE_URL}/rubros`,
+    CREAR: `${BASE_URL}/rubros`,
+    ACTUALIZAR: (id) => `${BASE_URL}/rubros/${id}`,
   },
   FINANZAS: {
     INGRESOS: `${BASE_URL}/ingresos`,
