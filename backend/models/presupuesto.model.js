@@ -41,7 +41,7 @@ const Presupuesto = sequelize.define(
     },
     {
         tableName: "presupuestos",
-        timestamps: false
+        timestamps: true
     }
 );
 

@@ -25,7 +25,7 @@ const Rubro = sequelize.define(
                 notEmpty: { msg: "El nombre del rubro es requerido" }
             }
         },
-        tipo: {
+        tipo: { //para filtrados rapidos
             type: DataTypes.ENUM("INGRESO", "EGRESO"),
             allowNull: false,
             validate: {

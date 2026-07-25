@@ -47,5 +47,3 @@ Rubro.belongsToMany(Presupuesto, { through: PresupuestoRubro, foreignKey: "id_ru
 // Relaciones uno a muchos para cargar con include
 PresupuestoRubro.belongsTo(Presupuesto, { foreignKey: "id_presupuesto" });
 PresupuestoRubro.belongsTo(Rubro, { foreignKey: "id_rubro" });
-Presupuesto.hasMany(PresupuestoRubro, { foreignKey: "id_presupuesto" });
-Rubro.hasMany(PresupuestoRubro, { foreignKey: "id_rubro" });

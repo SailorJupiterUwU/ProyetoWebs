@@ -20,7 +20,7 @@ const Vivienda = sequelize.define(
     },
     {
         tableName: "viviendas",
-        timestamps: false
+        timestamps: true
     }
 );
 

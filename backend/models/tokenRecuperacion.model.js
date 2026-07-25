@@ -56,3 +56,4 @@ module.exports = TokenRecuperacion;
 const Usuario = require("./usuario.model");
 
 TokenRecuperacion.belongsTo(Usuario, { foreignKey: "id_usuario" });
+Usuario.hasMany(TokenRecuperacion, { foreignKey: "id_usuario" });

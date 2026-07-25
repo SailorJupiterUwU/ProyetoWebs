@@ -40,5 +40,3 @@ Modulo.belongsToMany(Rol, { through: RolModulo, foreignKey: "id_modulo", otherKe
 // Relaciones uno a muchos para cargar con include
 RolModulo.belongsTo(Rol, { foreignKey: "id_rol" });
 RolModulo.belongsTo(Modulo, { foreignKey: "id_modulo" });
-Rol.hasMany(RolModulo, { foreignKey: "id_rol" });
-Modulo.hasMany(RolModulo, { foreignKey: "id_modulo" });

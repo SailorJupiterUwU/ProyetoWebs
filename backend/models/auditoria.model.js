@@ -73,3 +73,6 @@ const Modulo = require("./modulo.model");
 
 Auditoria.belongsTo(Usuario, { foreignKey: "id_usuario" });
 Auditoria.belongsTo(Modulo, { foreignKey: "id_modulo" });
+
+Usuario.hasMany(Auditoria, { foreignKey: "id_usuario" });
+Modulo.hasMany(Auditoria, { foreignKey: "id_modulo" });

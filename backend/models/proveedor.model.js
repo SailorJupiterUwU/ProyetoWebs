@@ -25,7 +25,7 @@ const Proveedor = sequelize.define(
     },
     {
         tableName: "proveedores",
-        timestamps: false
+        timestamps: true
     }
 );
 

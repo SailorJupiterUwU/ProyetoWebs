@@ -52,7 +52,7 @@ const Persona = sequelize.define(
     },
     {
         tableName: "personas",
-        timestamps: false
+        timestamps: true
     }
 );
 

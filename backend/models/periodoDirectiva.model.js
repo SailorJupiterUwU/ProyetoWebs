@@ -35,7 +35,7 @@ const PeriodoDirectiva = sequelize.define(
     },
     {
         tableName: "periodos_directiva",
-        timestamps: false
+        timestamps: true
     }
 );
 

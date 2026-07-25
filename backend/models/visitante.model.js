@@ -46,7 +46,7 @@ const Visitante = sequelize.define(
             defaultValue: 1,
             validate: {
                 notNull: { msg: "El número de personas es requerido" }
-            }
+            } //por si acaso aunque tenemos default
         },
         tiene_vehiculo: {
             type: DataTypes.BOOLEAN,
@@ -64,16 +64,11 @@ const Visitante = sequelize.define(
         fecha_hora_salida_real: {
             type: DataTypes.DATE,
             allowNull: true
-        },
-        estado: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: true
         }
     },
     {
         tableName: "visitantes",
-        timestamps: false
+        timestamps: true
     }
 );
 

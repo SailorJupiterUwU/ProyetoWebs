@@ -56,7 +56,7 @@ const ReporteFinanciero = sequelize.define(
     },
     {
         tableName: "reportes_financieros",
-        timestamps: false
+        timestamps: true
     }
 );
 
@@ -66,3 +66,4 @@ module.exports = ReporteFinanciero;
 const Usuario = require("./usuario.model");
 
 ReporteFinanciero.belongsTo(Usuario, { foreignKey: "id_usuario" });
+Usuario.hasMany(ReporteFinanciero, { foreignKey: "id_usuario" });

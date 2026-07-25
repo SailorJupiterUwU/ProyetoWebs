@@ -77,3 +77,6 @@ const Visitante = require("./visitante.model");
 
 CodigoQR.belongsTo(Usuario, { foreignKey: "id_usuario" });
 CodigoQR.belongsTo(Visitante, { foreignKey: "id_visitante" });
+
+Usuario.hasMany(CodigoQR, { foreignKey: "id_usuario" });
+Visitante.hasOne(CodigoQR, { foreignKey: "id_visitante" });

@@ -73,5 +73,6 @@ const Ingreso = require("./ingreso.model");
 
 Alicuota.belongsTo(Vivienda, { foreignKey: "id_vivienda" });
 Alicuota.belongsTo(Presupuesto, { foreignKey: "id_presupuesto" });
-Alicuota.hasMany(Multa, { foreignKey: "id_alicuota" });
-Alicuota.hasMany(Ingreso, { foreignKey: "id_alicuota" });
+
+Vivienda.hasMany(Alicuota, { foreignKey: "id_vivienda" });
+Presupuesto.hasMany(Alicuota, { foreignKey: "id_presupuesto" });

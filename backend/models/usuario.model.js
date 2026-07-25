@@ -7,7 +7,7 @@ const Usuario = sequelize.define(
         id_usuario: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: trues
         },
         id_persona: {
             type: DataTypes.INTEGER,
@@ -25,7 +25,8 @@ const Usuario = sequelize.define(
         },
         id_vivienda: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: true,
+            unique: true
         },
         id_periodo_directiva: {
             type: DataTypes.INTEGER,
@@ -87,5 +88,5 @@ Usuario.belongsTo(PeriodoDirectiva, { foreignKey: "id_periodo_directiva" });
 
 Persona.hasMany(Usuario, { foreignKey: "id_persona" });
 Rol.hasMany(Usuario, { foreignKey: "id_rol" });
-Vivienda.hasMany(Usuario, { foreignKey: "id_vivienda" });
+Vivienda.hasOne(Usuario, { foreignKey: "id_vivienda" });
 PeriodoDirectiva.hasMany(Usuario, { foreignKey: "id_periodo_directiva" });

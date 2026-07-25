@@ -80,7 +80,7 @@ const Ingreso = sequelize.define(
     },
     {
         tableName: "ingresos",
-        timestamps: false
+        timestamps: true
     }
 );
 
@@ -98,3 +98,9 @@ Ingreso.belongsTo(Vivienda, { foreignKey: "id_vivienda" });
 Ingreso.belongsTo(Usuario, { foreignKey: "id_usuario" });
 Ingreso.belongsTo(Alicuota, { foreignKey: "id_alicuota" });
 Ingreso.belongsTo(Multa, { foreignKey: "id_multa" });
+
+Rubro.hasMany(Ingreso, { foreignKey: "id_rubro" });
+Vivienda.hasMany(Ingreso, { foreignKey: "id_vivienda" });
+Usuario.hasMany(Ingreso, { foreignKey: "id_usuario" });
+Alicuota.hasMany(Ingreso, { foreignKey: "id_alicuota" });
+Multa.hasMany(Ingreso, { foreignKey: "id_multa" });

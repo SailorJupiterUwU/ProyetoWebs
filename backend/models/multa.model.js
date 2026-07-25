@@ -52,7 +52,7 @@ const Multa = sequelize.define(
     },
     {
         tableName: "multas",
-        timestamps: false
+        timestamps: true
     }
 );
 

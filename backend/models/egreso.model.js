@@ -83,3 +83,7 @@ const Usuario = require("./usuario.model");
 Egreso.belongsTo(Proveedor, { foreignKey: "id_proveedor" });
 Egreso.belongsTo(Rubro, { foreignKey: "id_rubro" });
 Egreso.belongsTo(Usuario, { foreignKey: "id_usuario" });
+
+Proveedor.hasMany(Egreso, { foreignKey: "id_proveedor" });
+Rubro.hasMany(Egreso, { foreignKey: "id_rubro" });
+Usuario.hasMany(Egreso, { foreignKey: "id_usuario" });
