@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api from '../utils/apit';
+import api from '../utils/api';
 import { ENDPOINTS } from '../utils/endpoints';
 import { handleApiError } from '../utils/helpers';
 
