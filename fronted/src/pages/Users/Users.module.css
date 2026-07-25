@@ -1,0 +1,44 @@
+.tabBar {
+  display: flex;
+  border-bottom: 1px solid #e0c0b1;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab, .tabActive {
+  padding: 0.75rem 0.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab { color: #584237; }
+.tab:hover { color: #191c1e; }
+
+.tabActive {
+  color: #f97316;
+  border-bottom-color: #f97316;
+}
+
+.tabBadge {
+  margin-left: 0.125rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: #f97316;
+  color: white;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.error {
+  padding: 2rem;
+  text-align: center;
+  color: #b91c1c;
+}
