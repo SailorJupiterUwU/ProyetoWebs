@@ -122,3 +122,12 @@
   cursor: pointer;
 }
 .confirmButton:hover { background: #9d4300; }
+
+.errorAlert {
+  padding: 1.5rem;
+  text-align: center;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 0.75rem;
+}
