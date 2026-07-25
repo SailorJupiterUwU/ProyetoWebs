@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import styles from './Pending.module.css';
 
-const Pending = ({
-  pendingUsers,
-  registeredCount,
-  activeCount,
-  inactiveCount,
-  onApprove,
-  onReject,
-}) => {
+const Pending = ({ pendingUsers, resumen, onApprove, onReject }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPending = pendingUsers.filter(
@@ -17,6 +10,12 @@ const Pending = ({
       u.apellidos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.ci_ruc?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleReject = (id) => {
+    const motivo = window.prompt('Motivo del rechazo:');
+    if (motivo === null) return; // canceló
+    onReject(id, motivo || 'No especificado');
+  };
 
   return (
     <>
@@ -55,7 +54,7 @@ const Pending = ({
                 const initials = `${p.nombres?.[0] || ''}${p.apellidos?.[0] || ''}`.toUpperCase();
                 return (
                   <tr key={p.id_usuario}>
-                    <td>{p.fecha_solicitud || '—'}</td>
+                    <td>{p.fecha_registro || '—'}</td>
                     <td>
                       <div className={styles.userCell}>
                         <div className={styles.avatarPending}>{initials || 'JP'}</div>
@@ -66,7 +65,7 @@ const Pending = ({
                     </td>
                     <td className={styles.docCell}>{p.ci_ruc}</td>
                     <td>
-                      <span className={styles.houseTag}>{p.Casa?.numero_casa || 'N/A'}</span>
+                      <span className={styles.houseTag}>{p.numero_vivienda || 'N/A'}</span>
                     </td>
                     <td>
                       <div className={styles.pendingActions}>
@@ -76,7 +75,7 @@ const Pending = ({
                           </span>
                           <span>Aprobar</span>
                         </button>
-                        <button className={styles.rejectBtn} onClick={() => onReject(p.id_usuario)}>
+                        <button className={styles.rejectBtn} onClick={() => handleReject(p.id_usuario)}>
                           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
                             cancel
                           </span>
@@ -99,7 +98,7 @@ const Pending = ({
           </div>
           <div>
             <p className={styles.statLabel}>SOLICITUDES HOY</p>
-            <h4 className={styles.statValue}>{pendingUsers.length}</h4>
+            <h4 className={styles.statValue}>{resumen.solicitudes_hoy}</h4>
           </div>
         </div>
         <div className={styles.statBox}>
@@ -108,7 +107,7 @@ const Pending = ({
           </div>
           <div>
             <p className={styles.statLabel}>APROBADOS MES</p>
-            <h4 className={styles.statValue}>{activeCount}</h4>
+            <h4 className={styles.statValue}>{resumen.aprobados_mes}</h4>
           </div>
         </div>
         <div className={styles.statBox}>
@@ -117,7 +116,7 @@ const Pending = ({
           </div>
           <div>
             <p className={styles.statLabel}>RECHAZADOS</p>
-            <h4 className={styles.statValue}>{inactiveCount}</h4>
+            <h4 className={styles.statValue}>{resumen.rechazados}</h4>
           </div>
         </div>
       </div>

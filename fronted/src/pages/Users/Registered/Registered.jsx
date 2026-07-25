@@ -1,62 +1,79 @@
 import React, { useState } from 'react';
 import styles from './Registered.module.css';
 
-const Registered = ({ users, onStatusChange, showAddModal, setShowAddModal }) => {
+const Registered = ({ users, onRefetch, onUpdateStatus, onCreateUser, showAddModal, setShowAddModal }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Todos');
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('todos');
 
-  const [name, setName] = useState('');
-  const [doc, setDoc] = useState('');
-  const [role, setRole] = useState('Residente');
-  const [house, setHouse] = useState('');
-  const [email, setEmail] = useState('');
+  const [nombres, setNombres] = useState('');
+  const [apellidos, setApellidos] = useState('');
+  const [ci_ruc, setCiRuc] = useState('');
+  const [id_rol, setIdRol] = useState('');
+  const [numero_vivienda, setNumeroVivienda] = useState('');
+  const [correo_login, setCorreoLogin] = useState('');
+  const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState(null);
 
-  const matchesSearch = (u) =>
-    u.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.apellidos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.ci_ruc?.toLowerCase().includes(searchTerm.toLowerCase());
-
+  // Filtrado y búsqueda en cliente (el backend ya soporta filtros por query,
+  // pero mantenemos esto para respuesta instantánea mientras el usuario escribe)
   const filteredUsers = users.filter((u) => {
-    if (!matchesSearch(u)) return false;
-    if (statusFilter === 'Activos') return u.estado === 'Activo';
-    if (statusFilter === 'Inactivos') return u.estado === 'Inactivo';
+    const matchesSearch =
+      u.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.apellidos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.ci_ruc?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (statusFilter === 'Activos') return u.estado === 'ACTIVO';
+    if (statusFilter === 'Inactivos') return u.estado === 'INACTIVO';
     return true;
   });
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
-    // TODO: conectar con la función real de creación de usuario (ej. createUser del hook)
-    console.warn('createUser no implementado en useUsers todavía');
-    setShowAddModal(false);
-    setName('');
-    setDoc('');
-    setHouse('');
-    setEmail('');
+    setFormError(null);
+    const result = await onCreateUser({
+      nombres,
+      apellidos,
+      ci_ruc,
+      id_rol,
+      numero_vivienda,
+      correo_login,
+      password,
+    });
+    if (result.success) {
+      setShowAddModal(false);
+      setNombres('');
+      setApellidos('');
+      setCiRuc('');
+      setIdRol('');
+      setNumeroVivienda('');
+      setCorreoLogin('');
+      setPassword('');
+    } else {
+      setFormError(result.error);
+    }
   };
 
   return (
     <>
-      {/* Filters */}
       <div className={styles.filters}>
         <div className={styles.searchBox}>
           <span className="material-symbols-outlined">search</span>
           <input
             type="text"
-            placeholder="Buscar por nombre, CI/RUC o correo..."
+            placeholder="Buscar por nombre o CI/RUC..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className={styles.filterTabs}>
-          {['Todos', 'Activos', 'Inactivos'].map((f) => (
+          {['todos', 'Activos', 'Inactivos'].map((f) => (
             <button
               key={f}
               className={statusFilter === f ? styles.activeFilter : styles.filterBtn}
               onClick={() => setStatusFilter(f)}
             >
-              {f}
+              {f === 'todos' ? 'Todos' : f}
             </button>
           ))}
         </div>
@@ -81,41 +98,28 @@ const Registered = ({ users, onStatusChange, showAddModal, setShowAddModal }) =>
                   <td>
                     <div className={styles.userCell}>
                       <div className={styles.avatar}>{u.nombres?.charAt(0)}</div>
-                      <div>
-                        <p className={styles.name}>
-                          {u.nombres} {u.apellidos}
-                        </p>
-                        <p className={styles.email}>{u.correo}</p>
-                      </div>
+                      <p className={styles.name}>
+                        {u.nombres} {u.apellidos}
+                      </p>
                     </div>
                   </td>
                   <td>{u.ci_ruc}</td>
                   <td>
-                    <span className={styles.roleTag}>{u.Rol?.nombre || 'Sin Rol'}</span>
+                    <span className={styles.roleTag}>{u.rol_nombre || 'Sin Rol'}</span>
                   </td>
                   <td>
-                    <span className={`${styles.statusTag} ${styles[u.estado.toLowerCase()]}`}>
+                    <span className={`${styles.statusTag} ${styles[u.estado?.toLowerCase()]}`}>
                       {u.estado}
                     </span>
                   </td>
-                  <td>{u.Casa?.numero_casa || 'N/A'}</td>
+                  <td>{u.numero_vivienda || 'N/A'}</td>
                   <td>
                     <div className={styles.actions}>
                       <button
                         className={styles.actionBtn}
-                        title="Ver Detalles"
-                        onClick={() => setSelectedUser(u)}
-                      >
-                        <span className="material-symbols-outlined">visibility</span>
-                      </button>
-                      <button className={styles.actionBtn} title="Editar">
-                        <span className="material-symbols-outlined">edit</span>
-                      </button>
-                      <button
-                        className={styles.actionBtn}
                         title="Cambiar Estado"
                         onClick={() =>
-                          onStatusChange(u.id_usuario, u.estado === 'Activo' ? 'Inactivo' : 'Activo')
+                          onUpdateStatus(u.id_usuario, u.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO')
                         }
                       >
                         <span className="material-symbols-outlined">sync</span>
@@ -133,24 +137,8 @@ const Registered = ({ users, onStatusChange, showAddModal, setShowAddModal }) =>
             )}
           </tbody>
         </table>
-        <div className={styles.tableFooter}>
-          <span>Mostrando {filteredUsers.length} resultados</span>
-          <div className={styles.pageButtons}>
-            <button className={styles.pageBtn} disabled>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                chevron_left
-              </span>
-            </button>
-            <button className={styles.pageBtn}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                chevron_right
-              </span>
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Add User Modal */}
       {showAddModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
@@ -161,44 +149,30 @@ const Registered = ({ users, onStatusChange, showAddModal, setShowAddModal }) =>
               </button>
             </div>
             <form onSubmit={handleAddSubmit} className={styles.form}>
+              {formError && <div className={styles.formErrorAlert}>{formError}</div>}
               <div className={styles.formGroup}>
-                <label>Nombre Completo</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej. Cynthia Artieda"
-                  required
-                />
+                <label>Nombres</label>
+                <input type="text" value={nombres} onChange={(e) => setNombres(e.target.value)} required />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Apellidos</label>
+                <input type="text" value={apellidos} onChange={(e) => setApellidos(e.target.value)} required />
               </div>
               <div className={styles.formGroup}>
                 <label>CI/RUC</label>
-                <input
-                  type="text"
-                  value={doc}
-                  onChange={(e) => setDoc(e.target.value)}
-                  placeholder="17XXXXXXXX"
-                  required
-                />
+                <input type="text" value={ci_ruc} onChange={(e) => setCiRuc(e.target.value)} required />
               </div>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
-                  <label>Rol</label>
-                  <select value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="Presidenta (Directiva)">Presidenta (Directiva)</option>
-                    <option value="Tesorero (Directiva)">Tesorero (Directiva)</option>
-                    <option value="Residente">Residente</option>
-                    <option value="Guardia">Guardia</option>
-                  </select>
+                  <label>ID de Rol</label>
+                  <input type="number" value={id_rol} onChange={(e) => setIdRol(e.target.value)} required />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>#Casa / Ubicación</label>
+                  <label>#Casa</label>
                   <input
                     type="text"
-                    value={house}
-                    onChange={(e) => setHouse(e.target.value)}
-                    placeholder="A-01"
-                    required
+                    value={numero_vivienda}
+                    onChange={(e) => setNumeroVivienda(e.target.value)}
                   />
                 </div>
               </div>
@@ -206,10 +180,14 @@ const Registered = ({ users, onStatusChange, showAddModal, setShowAddModal }) =>
                 <label>Correo electrónico</label>
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="correo@ejemplo.com"
+                  value={correo_login}
+                  onChange={(e) => setCorreoLogin(e.target.value)}
+                  required
                 />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Contraseña</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
               <div className={styles.formActions}>
                 <button type="button" onClick={() => setShowAddModal(false)} className={styles.cancelBtn}>
@@ -220,55 +198,6 @@ const Registered = ({ users, onStatusChange, showAddModal, setShowAddModal }) =>
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Detail Modal */}
-      {selectedUser && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h3>Ficha de Usuario</h3>
-              <button onClick={() => setSelectedUser(null)} className={styles.modalClose}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div className={styles.detailList}>
-              <div className={styles.detailRow}>
-                <span>Nombre:</span>
-                <span className={styles.detailValue}>
-                  {selectedUser.nombres} {selectedUser.apellidos}
-                </span>
-              </div>
-              <div className={styles.detailRow}>
-                <span>CI/RUC:</span>
-                <span className={styles.detailMono}>{selectedUser.ci_ruc}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span>Rol:</span>
-                <span className={styles.detailRole}>{selectedUser.Rol?.nombre || 'Sin Rol'}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span>Casa:</span>
-                <span>{selectedUser.Casa?.numero_casa || 'N/A'}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span>Correo:</span>
-                <span>{selectedUser.correo || 'No registrado'}</span>
-              </div>
-              <div className={styles.detailRow}>
-                <span>Estado:</span>
-                <span className={`${styles.statusTag} ${styles[selectedUser.estado.toLowerCase()]}`}>
-                  {selectedUser.estado}
-                </span>
-              </div>
-            </div>
-            <div className={styles.formActions}>
-              <button onClick={() => setSelectedUser(null)} className={styles.cancelBtn}>
-                Cerrar
-              </button>
-            </div>
           </div>
         </div>
       )}

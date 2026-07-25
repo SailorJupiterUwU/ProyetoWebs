@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useUsers from '../../hooks/useUsers';
+import useSolicitudes from '../../hooks/useSolicitudes';
 import Layout from '../../components/comunes/Layout/Layout';
 import PageHeader from '../../components/comunes/PageHeader/PageHeader';
 import Button from '../../components/comunes/Button/Button';
@@ -9,18 +10,13 @@ import UsersPending from './Pending/Pending';
 import styles from './Users.module.css';
 
 const Users = () => {
-  const { data: users, loading, error, updateStatus } = useUsers();
+  const usersHook = useUsers();
+  const solicitudesHook = useSolicitudes();
   const [activeTab, setActiveTab] = useState('registered');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const registeredUsers = users.filter((u) => u.estado !== 'Pendiente');
-  const pendingUsers = users.filter((u) => u.estado === 'Pendiente');
-
-  const handleStatusChange = async (id, newStatus) => {
-    if (window.confirm(`¿Está seguro de cambiar el estado a ${newStatus}?`)) {
-      await updateStatus(id, newStatus);
-    }
-  };
+  const loading = activeTab === 'registered' ? usersHook.loading : solicitudesHook.loading;
+  const error = activeTab === 'registered' ? usersHook.error : solicitudesHook.error;
 
   return (
     <Layout>
@@ -50,7 +46,7 @@ const Users = () => {
           onClick={() => setActiveTab('registered')}
           className={activeTab === 'registered' ? styles.tabActive : styles.tab}
         >
-          Usuarios Registrados ({registeredUsers.length})
+          Usuarios Registrados ({usersHook.data.length})
         </button>
         <button
           onClick={() => setActiveTab('pending')}
@@ -60,8 +56,8 @@ const Users = () => {
             pending_actions
           </span>
           <span>Pendientes de Aprobación</span>
-          {pendingUsers.length > 0 && (
-            <span className={styles.tabBadge}>{pendingUsers.length}</span>
+          {solicitudesHook.data.length > 0 && (
+            <span className={styles.tabBadge}>{solicitudesHook.data.length}</span>
           )}
         </button>
       </div>
@@ -72,19 +68,19 @@ const Users = () => {
         <div className={styles.error}>{error}</div>
       ) : activeTab === 'registered' ? (
         <UsersRegistered
-          users={registeredUsers}
-          onStatusChange={handleStatusChange}
+          users={usersHook.data}
+          onRefetch={usersHook.fetchUsers}
+          onUpdateStatus={usersHook.updateStatus}
+          onCreateUser={usersHook.createUser}
           showAddModal={showAddModal}
           setShowAddModal={setShowAddModal}
         />
       ) : (
         <UsersPending
-          pendingUsers={pendingUsers}
-          registeredCount={registeredUsers.length}
-          activeCount={registeredUsers.filter((u) => u.estado === 'Activo').length}
-          inactiveCount={registeredUsers.filter((u) => u.estado === 'Inactivo').length}
-          onApprove={(id) => handleStatusChange(id, 'Activo')}
-          onReject={(id) => handleStatusChange(id, 'Inactivo')}
+          pendingUsers={solicitudesHook.data}
+          resumen={solicitudesHook.resumen}
+          onApprove={solicitudesHook.aprobar}
+          onReject={solicitudesHook.rechazar}
         />
       )}
     </Layout>
