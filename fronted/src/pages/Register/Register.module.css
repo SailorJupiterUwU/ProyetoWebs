@@ -120,3 +120,23 @@
 .loginLink:hover {
   text-decoration: underline;
 }
+
+.errorAlert {
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #b91c1c;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.successBlock {
+  padding: 2rem;
+  text-align: center;
+}
+
+.successIcon {
+  font-size: 48px;
+  color: #16a34a;
+  margin-bottom: 1rem;
+}
