@@ -1,0 +1,247 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #0f172a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+  transition: width 0.2s ease;
+  border-right: 1px solid #1e293b;
+}
+
+.sidebarCollapsed {
+  width: 72px;
+}
+
+.logoContainer {
+  padding: 1.25rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 64px;
+}
+
+.logoBadge {
+  width: 2.25rem;
+  height: 2.25rem;
+  min-width: 2.25rem;
+  background-color: #f97316;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.logoBadge .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.logoText {
+  font-size: 1.1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  color: white;
+}
+
+.toggleButton {
+  position: absolute;
+  top: 1.5rem;
+  right: -0.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background-color: #f97316;
+  color: white;
+  border: 2px solid #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 101;
+}
+
+.toggleButton .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.nav {
+  flex: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.link, .activeLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.875rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  border-radius: 0.625rem;
+}
+
+.link {
+  color: #93c5fd;
+}
+
+.link:hover {
+  background-color: #1e293b;
+  color: #e0f2fe;
+}
+
+.activeLink {
+  background-color: #f97316;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+}
+
+.userFooter {
+  padding: 1rem;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #1e293b;
+  padding: 0.625rem;
+  border-radius: 0.625rem;
+}
+
+.avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  min-width: 2.25rem;
+  background-color: #f97316;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.userDetails {
+  overflow: hidden;
+}
+
+.userName {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: white;
+}
+
+.userRole {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+}
+
+.footerActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.footerLinkButton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.footerLinkButton .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.footerLinkButton:hover {
+  background-color: #1e293b;
+  color: #e0f2fe;
+}
+
+.logoutButtonCollapsed {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid #1e293b;
+  color: #94a3b8;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.logoutButtonCollapsed:hover {
+  background-color: #1e293b;
+  color: white;
+}
+
+.main {
+  flex: 1;
+  margin-left: 240px;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.2s ease;
+}
+
+.mainExpanded {
+  margin-left: 72px;
+}
+
+.content {
+  padding: 2rem 1.5rem;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 72px;
+  }
+  .logoText, .link span:last-child, .userDetails {
+    display: none;
+  }
+  .main {
+    margin-left: 72px;
+  }
+  .link, .activeLink {
+    justify-content: center;
+  }
+}
