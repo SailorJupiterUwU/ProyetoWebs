@@ -57,6 +57,13 @@ const Usuario = sequelize.define(
                 notNull: { msg: "La fecha de decisión es requerida" }
             }
         },
+        fecha_registro: {
+            type: DataTypes.DATEONLY,
+            allowNull: false,
+            validate: {
+                notNull: { msg: "La fecha de registro es requerida" }
+            }
+        },
         estado: {
             type: DataTypes.ENUM("PENDIENTE", "ACTIVO", "INACTIVO", "RECHAZADO"),
             allowNull: false,

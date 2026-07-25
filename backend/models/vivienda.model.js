@@ -16,6 +16,15 @@ const Vivienda = sequelize.define(
                 notNull: { msg: "El número de vivienda es requerido" },
                 notEmpty: { msg: "El número de vivienda es requerido" }
             }
+        },
+        porcentaje_alicuota: {
+            type: DataTypes.DECIMAL(5, 4),
+            allowNull: false,
+            validate: {
+                notNull: { msg: "El porcentaje de alícuota es requerido" },
+                min: { args: [0], msg: "El porcentaje no puede ser negativo" },
+                max: { args: [1], msg: "El porcentaje no puede ser mayor a 1 (100%)" }
+            }
         }
     },
     {

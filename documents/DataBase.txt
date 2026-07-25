@@ -31,9 +31,13 @@ entity "Usuario" as Usuario {
   id_periodo_directiva : INT <<FK, NULLABLE>>
   * correo_login : VARCHAR(100) <<UNIQUE>>
   * password_hash : VARCHAR(255)
-  * fecha_decision : DATE
+  * fecha_registro : DATETIME
+  fecha_decision : DATETIME
   * estado : ENUM(PENDIENTE, ACTIVO, INACTIVO, RECHAZADO)
   motivo_rechazo : VARCHAR(255)
+  --
+  ' fecha_registro: cuando se crea la cuenta/solicitud (siempre existe)
+  ' fecha_decision: cuando Presidenta aprueba/rechaza (NULL si sigue pendiente)
 }
 
 entity "Rol" as Rol {
@@ -70,6 +74,10 @@ entity "Vivienda" as Vivienda {
   * id_vivienda : INT <<PK>>
   --
   * numero : VARCHAR(20)
+  * porcentaje_alicuota : DECIMAL(5,4)
+  --
+  ' porcentaje_alicuota: % fijo del presupuesto que le corresponde a
+  ' esta vivienda, usado para calcular Alicuota.valor_base cada mes
 }
 
 ' ------------------------------------------------------------
