@@ -1,0 +1,617 @@
+# CondoSecure - Especificación de Endpoints (REQ/RES)
+
+Formato: método, ruta, request body, responses por status code.
+Convenciones generales (no se repiten en cada endpoint):
+- Todo endpoint protegido requiere header `Authorization: Bearer <token>`.
+- `401` = no autenticado (token ausente/inválido/expirado). `403` = autenticado pero sin permiso para ese módulo/rol.
+- `500` siempre disponible como `{ msg: "Error interno" }`, se omite abajo para no repetir.
+- IDs que identifican "quién hizo la acción" (`id_usuario`) se obtienen del token decodificado en el backend, **nunca** del body enviado por el front.
+
+---
+
+## 1. AuthController
+
+### `AuthController.login()`
+`POST /auth/login`
+```
+REQ:
+{ correo_login: "xxx", password: "xxx" }
+
+RES 200:
+{
+  token: "eyJhbGciOi...",
+  usuario: {
+    id_usuario: 12,
+    id_persona: 5,
+    nombres: "Cynthia",
+    apellidos: "Artieda",
+    foto: "url_o_null",
+    rol: { id_rol: 2, nombre: "Presidenta" },
+    modulos: ["Dashboard", "Usuarios", "Roles", "Auditoria", "Reportes"]
+  }
+}
+
+RES 401: { msg: "Correo o contraseña incorrectos" }
+RES 403: { msg: "Tu cuenta está pendiente de aprobación" }   // estado = PENDIENTE
+RES 403: { msg: "Tu cuenta fue rechazada" }                   // estado = RECHAZADO
+RES 403: { msg: "Tu cuenta está inactiva" }                   // estado = INACTIVO
+```
+
+### `AuthController.registro()`
+`POST /auth/registro` (multipart/form-data)
+```
+REQ:
+{ nombres, apellidos, ci_ruc, numero_vivienda, correo_login, password, foto? }
+
+RES 201: { msg: "Solicitud enviada, en espera de aprobación" }
+RES 400: { msg: "La vivienda #Casa no está registrada en el sistema" }
+RES 409: { msg: "Ya existe una cuenta con ese correo" }
+```
+
+### `AuthController.recuperarPassword()`
+`POST /auth/recuperar-password`
+```
+REQ: { correo_login: "xxx" }
+RES 200: { msg: "Si el correo existe, se envió un link de recuperación" }
+```
+Nota: siempre responde 200 igual exista o no el correo (evita filtrar qué correos están registrados).
+
+### `AuthController.resetPassword()`
+`POST /auth/reset-password`
+```
+REQ: { token: "xxx", nueva_password: "xxx" }
+RES 200: { msg: "Contraseña actualizada" }
+RES 400: { msg: "Token inválido o expirado" }
+```
+
+### `AuthController.logout()`
+`POST /auth/logout`
+```
+RES 200: { msg: "Sesión cerrada" }
+```
+
+---
+
+## 2. UsuarioController
+
+### `UsuarioController.listar()`
+`GET /usuarios?search=&estado=activos|inactivos|todos`
+```
+RES 200:
+{
+  data: [
+    { id_usuario, nombres, apellidos, ci_ruc, rol_nombre, estado, numero_vivienda }
+  ],
+  total: 3
+}
+```
+
+### `UsuarioController.detalle()`
+`GET /usuarios/:id`
+```
+RES 200: { id_usuario, id_persona, nombres, apellidos, ci_ruc, correo, telefono, foto, rol, vivienda, estado, fecha_registro }
+RES 404: { msg: "Usuario no encontrado" }
+```
+
+### `UsuarioController.crear()`
+`POST /usuarios`
+```
+REQ: { nombres, apellidos, ci_ruc, id_rol, numero_vivienda?, correo_login, password }
+RES 201: { id_usuario, msg: "Usuario creado" }
+RES 400: { msg: "Datos inválidos" }
+```
+
+### `UsuarioController.editar()`
+`PUT /usuarios/:id`
+```
+REQ: { nombres?, apellidos?, correo?, telefono?, foto? }
+RES 200: { msg: "Usuario actualizado" }
+RES 404: { msg: "Usuario no encontrado" }
+```
+
+### `UsuarioController.cambiarEstado()`
+`PATCH /usuarios/:id/estado`
+```
+REQ: { estado: "ACTIVO" | "INACTIVO" }
+RES 200: { msg: "Estado actualizado" }
+```
+
+### `UsuarioController.listarSolicitudes()`
+`GET /usuarios/solicitudes`
+```
+RES 200:
+{
+  data: [
+    { id_usuario, nombres, apellidos, ci_ruc, numero_vivienda, fecha_registro }
+  ],
+  resumen: { solicitudes_hoy: 12, aprobados_mes: 145, rechazados: 3 }
+}
+```
+
+### `UsuarioController.historialSolicitudes()`
+`GET /usuarios/solicitudes/historial`
+```
+RES 200: { data: [ { id_usuario, nombres, apellidos, estado, fecha_decision, motivo_rechazo } ] }
+```
+
+### `UsuarioController.aprobarSolicitud()`
+`PATCH /usuarios/solicitudes/:id/aprobar`
+```
+RES 200: { msg: "Usuario aprobado" }
+RES 409: { msg: "La solicitud ya fue resuelta" }
+```
+
+### `UsuarioController.rechazarSolicitud()`
+`PATCH /usuarios/solicitudes/:id/rechazar`
+```
+REQ: { motivo_rechazo: "xxx" }
+RES 200: { msg: "Usuario rechazado" }
+```
+
+### `UsuarioController.historialOperaciones()`
+`GET /usuarios/:id/historial?fecha_inicio=&fecha_fin=`
+```
+RES 200: { data: [ { tipo: "INGRESO"|"EGRESO", descripcion, monto, fecha } ] }
+```
+
+---
+
+## 3. RolController
+
+### `RolController.listar()`
+`GET /roles`
+```
+RES 200: { data: [ { id_rol, codigo, nombre, descripcion, estado } ] }
+```
+
+### `RolController.crear()`
+`POST /roles`
+```
+REQ: { codigo, nombre, descripcion }
+RES 201: { id_rol, msg: "Rol creado" }
+```
+
+### `RolController.editar()`
+`PUT /roles/:id`
+```
+REQ: { nombre?, descripcion? }
+RES 200: { msg: "Rol actualizado" }
+```
+
+### `RolController.cambiarEstado()`
+`PATCH /roles/:id/estado`
+```
+REQ: { estado: true | false }
+RES 200: { msg: "Estado actualizado" }
+```
+
+### `RolController.obtenerModulos()`
+`GET /roles/:id/modulos`
+```
+RES 200: { data: [ { id_modulo, nombre, asignado: true|false } ] }
+```
+
+### `RolController.actualizarModulos()`
+`PUT /roles/:id/modulos`
+```
+REQ: { modulos: [1, 2, 5, 8] }   // ids de módulos asignados
+RES 200: { msg: "Permisos actualizados" }
+```
+
+---
+
+## 4. ModuloController
+
+### `ModuloController.listar()`
+`GET /modulos`
+```
+RES 200: { data: [ { id_modulo, nombre } ] }
+```
+
+---
+
+## 5. ViviendaController
+
+### `ViviendaController.listar()`
+`GET /viviendas`
+```
+RES 200: { data: [ { id_vivienda, numero, porcentaje_alicuota, estado } ] }
+```
+
+### `ViviendaController.detalle()`
+`GET /viviendas/:id`
+```
+RES 200: { id_vivienda, numero, porcentaje_alicuota, estado }
+RES 404: { msg: "Vivienda no encontrada" }
+```
+
+### `ViviendaController.crear()`
+`POST /viviendas`
+```
+REQ: { numero, porcentaje_alicuota }
+RES 201: { id_vivienda, msg: "Vivienda creada" }
+RES 400: { msg: "La suma de porcentajes de alícuota supera el 100%" }
+```
+
+### `ViviendaController.editar()`
+`PUT /viviendas/:id`
+```
+REQ: { numero?, porcentaje_alicuota? }
+RES 200: { msg: "Vivienda actualizada" }
+```
+
+### `ViviendaController.cambiarEstado()`
+`PATCH /viviendas/:id/estado`
+```
+REQ: { estado: true | false }
+RES 200: { msg: "Estado actualizado" }
+```
+
+---
+
+## 6. PresupuestoController
+
+### `PresupuestoController.listar()`
+`GET /presupuestos`
+```
+RES 200: { data: [ { id_presupuesto, anio, total, fecha_carga } ] }
+```
+
+### `PresupuestoController.detalle()`
+`GET /presupuestos/:id`
+```
+RES 200: { id_presupuesto, anio, total, archivo_excel, fecha_carga }
+```
+
+### `PresupuestoController.importarExcel()`
+`POST /presupuestos/importar` (multipart/form-data)
+```
+REQ: { anio, archivo: <file.xlsx> }
+RES 201: { id_presupuesto, msg: "Presupuesto importado", rubros_creados: 8 }
+RES 400: { msg: "El archivo está corrupto o no tiene el formato esperado" }
+```
+
+### `PresupuestoController.listarRubros()`
+`GET /presupuestos/:id/rubros`
+```
+RES 200:
+{
+  data: [
+    { id_rubro, codigo, nombre, monto_asignado, gasto_ejecutado, saldo_disponible }
+  ],
+  totales: { monto_asignado: 12700.00, gasto_ejecutado: 3200.00, saldo_disponible: 9500.00 }
+}
+```
+
+### `PresupuestoController.agregarRubro()`
+`POST /presupuestos/:id/rubros`
+```
+REQ: { id_rubro, monto_asignado }
+RES 201: { msg: "Rubro asignado al presupuesto" }
+```
+
+### `PresupuestoController.editarMontoRubro()`
+`PUT /presupuestos/:id/rubros/:idRubro`
+```
+REQ: { monto_asignado }
+RES 200: { msg: "Monto actualizado" }
+```
+
+---
+
+## 7. RubroController
+
+### `RubroController.listar()`
+`GET /rubros`
+```
+RES 200: { data: [ { id_rubro, codigo, nombre, tipo, estado } ] }
+```
+
+### `RubroController.crear()`
+`POST /rubros`
+```
+REQ: { codigo, nombre, tipo: "INGRESO" | "EGRESO" }
+RES 201: { id_rubro, msg: "Rubro creado" }
+```
+
+### `RubroController.editar()`
+`PUT /rubros/:id`
+```
+REQ: { nombre?, estado? }
+RES 200: { msg: "Rubro actualizado" }
+```
+
+---
+
+## 8. AlicuotaController
+
+### `AlicuotaController.listar()`
+`GET /alicuotas?id_vivienda=&mes=&anio=&estado=`
+```
+RES 200: { data: [ { id_alicuota, numero_vivienda, mes, anio, valor_base, fecha_vencimiento, estado } ] }
+```
+
+### `AlicuotaController.detalle()`
+`GET /alicuotas/:id`
+```
+RES 200: { id_alicuota, vivienda, mes, anio, valor_base, fecha_vencimiento, estado, multa? }
+```
+
+**Generación de alícuotas:** proceso automático (cron mensual). Para cada Vivienda activa, calcula `valor_base = (Presupuesto.total / 12) * Vivienda.porcentaje_alicuota`, crea el registro con `fecha_vencimiento` = día 10 del mes y `estado = PENDIENTE`. No se expone como endpoint público — vive en `jobs/generarAlicuotas.job.js`, no en el controlador.
+
+### `AlicuotaController.listarPropias()`
+`GET /alicuotas/mis-alicuotas`
+```
+RES 200: { data: [ { id_alicuota, mes, anio, valor_base, fecha_vencimiento, estado } ] }
+```
+Filtra automáticamente por la vivienda del Residente autenticado. Solo lectura.
+
+---
+
+## 9. MultaController
+
+### `MultaController.listar()`
+`GET /multas?id_vivienda=&estado=&fecha_inicio=&fecha_fin=`
+```
+RES 200: { data: [ { id_multa, numero_vivienda, dias_atraso, valor, fecha_generacion, estado } ] }
+```
+
+### `MultaController.detalle()`
+`GET /multas/:id`
+```
+RES 200: { id_multa, alicuota, dias_atraso, valor, fecha_generacion, fecha_actualizacion, estado }
+```
+
+### `MultaController.listarPropias()`
+`GET /multas/mis-multas`
+```
+RES 200: { data: [ { id_multa, mes, anio, dias_atraso, valor, estado } ] }
+```
+Filtra automáticamente por la vivienda del Residente autenticado. Solo lectura.
+
+---
+
+## 10. IngresoController
+
+### `IngresoController.listar()`
+`GET /ingresos?fecha_inicio=&fecha_fin=&numero_vivienda=&estado=&page=&limit=`
+```
+RES 200:
+{
+  data: [
+    { id_ingreso, fecha_pago, numero_vivienda, residente_nombre, descripcion, total_pagado, num_documento, estado }
+  ],
+  total: 156, page: 1, limit: 10
+}
+```
+
+### `IngresoController.detalle()`
+`GET /ingresos/:id`
+```
+RES 200: { id_ingreso, vivienda, alicuota?, multa?, valor_alicuota, valor_multa, total_pagado, comprobante, fecha_pago }
+```
+
+### `IngresoController.crear()`
+`POST /ingresos`
+```
+REQ: { id_vivienda, id_alicuota?, id_multa?, descripcion, comprobante? }
+RES 201: { id_ingreso, msg: "Pago registrado" }
+RES 409: { msg: "Esta alícuota ya fue pagada" }
+```
+
+### `IngresoController.resumen()`
+`GET /ingresos/resumen?mes=&anio=`
+```
+RES 200: { ingresos_del_mes: 12500.00, variacion_pct: 8.2, pendientes_cobro: 1200.00, recibos_pendientes: 14, multas_recaudadas: 350.00 }
+```
+
+### `IngresoController.distribucion()`
+`GET /ingresos/distribucion?mes=&anio=`
+```
+RES 200: { data: [ { concepto: "Mantenimiento", porcentaje: 70 }, { concepto: "Multas", porcentaje: 30 } ] }
+```
+
+### `IngresoController.listarPropios()`
+`GET /ingresos/mis-pagos`
+```
+RES 200: { data: [ { id_ingreso, descripcion, total_pagado, fecha_pago, estado_alicuota } ] }
+```
+Filtra automáticamente por la vivienda del Residente autenticado. Solo lectura.
+
+---
+
+## 11. ProveedorController
+
+### `ProveedorController.listar()`
+`GET /proveedores`
+```
+RES 200: { data: [ { id_proveedor, nombre, estado } ] }
+```
+
+### `ProveedorController.crear()`
+`POST /proveedores`
+```
+REQ: { nombre }
+RES 201: { id_proveedor, msg: "Proveedor creado" }
+```
+
+### `ProveedorController.editar()`
+`PUT /proveedores/:id`
+```
+REQ: { nombre?, estado? }
+RES 200: { msg: "Proveedor actualizado" }
+```
+
+---
+
+## 12. EgresoController
+
+### `EgresoController.listar()`
+`GET /egresos?fecha=&num_factura=&estado=&monto_min=&monto_max=&page=&limit=`
+```
+RES 200:
+{
+  data: [
+    { id_egreso, fecha_comprobante, proveedor_nombre, rubro_nombre, valor, num_factura, debito_automatico, estado }
+  ],
+  total: 45, page: 1, limit: 10
+}
+```
+
+### `EgresoController.detalle()`
+`GET /egresos/:id`
+```
+RES 200: { id_egreso, proveedor, rubro, num_factura, fecha_comprobante, valor, num_cheque, debito_automatico, estado }
+```
+
+### `EgresoController.crear()`
+`POST /egresos`
+```
+REQ: { id_proveedor, id_rubro, num_factura, fecha_comprobante, valor, num_cheque?, debito_automatico }
+RES 201: { id_egreso, msg: "Egreso registrado" }
+RES 409: { msg: "Este proveedor tiene una factura vencida sin pagar. No se puede registrar una nueva." }
+```
+
+### `EgresoController.editar()`
+`PUT /egresos/:id`
+```
+REQ: { valor?, estado?, num_cheque? }
+RES 200: { msg: "Egreso actualizado" }
+```
+
+### `EgresoController.resumen()`
+`GET /egresos/resumen?mes=&anio=`
+```
+RES 200: { egresos_del_mes: 8400.00, variacion_pct: 12, pagos_pendientes: 1500.00, facturas_por_vencer: 3, presupuesto_restante: 4300.00 }
+```
+
+---
+
+## 13. ReporteController
+
+### `ReporteController.listar()`
+`GET /reportes`
+```
+RES 200: { data: [ { id_reporte, tipo, fecha_inicio, fecha_fin, fecha_generacion, generado_por } ] }
+```
+
+### `ReporteController.generar()`
+`POST /reportes`
+```
+REQ: { tipo, fecha_inicio, fecha_fin }
+RES 201: { id_reporte, archivo_pdf, msg: "Reporte generado" }
+```
+
+### `ReporteController.descargar()`
+`GET /reportes/:id/descargar`
+```
+RES 200: <application/pdf, binario>
+RES 404: { msg: "Reporte no encontrado" }
+```
+
+---
+
+## 14. DashboardController
+
+### `DashboardController.resumen()`
+`GET /dashboard/resumen`
+```
+RES 200: { total_ingresos: 26805.36, total_egresos: 27543.26, saldo: -737.90 }
+```
+
+### `DashboardController.ingresosVsEgresos()`
+`GET /dashboard/ingresos-vs-egresos?anio=`
+```
+RES 200: { data: [ { mes: "Ene", ingresos: 4000, egresos: 3800 }, { mes: "Feb", ingresos: 3500, egresos: 3900 } ] }
+```
+
+### `DashboardController.cartera()`
+`GET /dashboard/cartera`
+```
+RES 200: { viviendas_en_mora: 12, multas_generadas: 8, total_pendiente: 6528.00 }
+```
+
+### `DashboardController.movimientosRecientes()`
+`GET /dashboard/movimientos-recientes?limit=10`
+```
+RES 200: { data: [ { fecha, casa, rubro, monto, tipo: "INGRESO"|"EGRESO" } ] }
+```
+
+---
+
+## 15. VisitanteController
+
+### `VisitanteController.crear()`
+`POST /visitantes`
+```
+REQ: { nombre, apellido, cedula, num_personas, tiene_vehiculo, placa?, id_vivienda_destino, valido_desde, valido_hasta }
+RES 201: { id_visitante, codigo_qr: "base64_o_url", msg: "Pase generado" }
+RES 400: { msg: "Debe indicar la placa si el visitante tiene vehículo" }
+```
+
+### `VisitanteController.listar()`
+`GET /visitantes?fecha_inicio=&fecha_fin=&numero_vivienda=`
+```
+RES 200: { data: [ { id_visitante, nombre, apellido, numero_vivienda, valido_desde, valido_hasta, estado_qr } ] }
+```
+
+### `VisitanteController.detalle()`
+`GET /visitantes/:id`
+```
+RES 200: { id_visitante, nombre, apellido, cedula, num_personas, tiene_vehiculo, placa, vivienda_destino, qr: {...} }
+```
+
+---
+
+## 16. QrController
+
+### `QrController.validar()`
+`POST /qr/validar`
+```
+REQ: { codigo: "xxx" }
+RES 200: { valido: true, visitante: { nombre, apellido, cedula, num_personas, vivienda_destino, tiene_vehiculo, placa } }
+RES 200: { valido: false, motivo: "VENCIDO" | "YA_UTILIZADO" | "REVOCADO" | "NO_ENCONTRADO" }
+```
+
+### `QrController.registrarIngreso()`
+`PATCH /qr/:id/ingreso`
+```
+RES 200: { msg: "Ingreso registrado" }
+```
+
+### `QrController.registrarSalida()`
+`PATCH /qr/:id/salida`
+```
+RES 200: { msg: "Salida registrada" }
+```
+
+### `QrController.revocar()`
+`PATCH /qr/:id/revocar`
+```
+RES 200: { msg: "Código QR revocado" }
+```
+
+---
+
+## 17. AuditoriaController
+
+### `AuditoriaController.listar()`
+`GET /auditoria?fecha_inicio=&fecha_fin=&id_rol=&id_usuario=`
+```
+RES 200: { data: [ { fecha, usuario_nombre, rol_nombre, modulo_nombre, accion } ] }
+```
+
+---
+
+## 18. HistorialController
+
+### `HistorialController.listar()`
+`GET /historial?id_rubro=&fecha_inicio=&fecha_fin=`
+```
+RES 200: { data: [ { fecha, tipo: "INGRESO"|"EGRESO", rubro_nombre, monto, descripcion } ] }
+```
+
+---
+
+## Pendientes
+...

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/jwt.config");
-const { Usuario } = require("../models");
+const Usuario = require("../models/usuario.model");
 
 /**
  * Verifica el token JWT (CU-01, postcondición: sesión autenticada).

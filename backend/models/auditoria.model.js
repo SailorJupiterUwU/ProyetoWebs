@@ -4,23 +4,27 @@ const sequelize = require("../config/sequelize.config");
 const Auditoria = sequelize.define(
     "auditoria",
     {
-        fecha_hora: {
-            type: DataTypes.DATE,
+        id_auditoria: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        id_usuario: {
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
-                notNull: { msg: "La fecha y hora es requerida" }
+                notNull: { msg: "El usuario es requerido" }
             }
         },
-        categoria: {
-            type: DataTypes.STRING(50),
+        id_modulo: {
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
-                notNull: { msg: "La categoría es requerida" },
-                notEmpty: { msg: "La categoría es requerida" }
+                notNull: { msg: "El módulo es requerido" }
             }
         },
         accion: {
-            type: DataTypes.STRING(100),
+            type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
                 notNull: { msg: "La acción es requerida" },
@@ -31,15 +35,27 @@ const Auditoria = sequelize.define(
             type: DataTypes.TEXT,
             allowNull: true
         },
-        ip_origen: {
-            type: DataTypes.STRING(45),
+        valor_anterior: {
+            type: DataTypes.TEXT,
             allowNull: true
         },
-        id_usuario: {
-            type: DataTypes.INTEGER,
+        valor_nuevo: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        ip_origen: {
+            type: DataTypes.STRING(45),
             allowNull: false,
             validate: {
-                notNull: { msg: "El usuario es requerido" }
+                notNull: { msg: "La IP de origen es requerida" },
+                notEmpty: { msg: "La IP de origen es requerida" }
+            }
+        },
+        fecha: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            validate: {
+                notNull: { msg: "La fecha es requerida" }
             }
         }
     },
@@ -50,3 +66,13 @@ const Auditoria = sequelize.define(
 );
 
 module.exports = Auditoria;
+
+// Definición de relaciones
+const Usuario = require("./usuario.model");
+const Modulo = require("./modulo.model");
+
+Auditoria.belongsTo(Usuario, { foreignKey: "id_usuario" });
+Auditoria.belongsTo(Modulo, { foreignKey: "id_modulo" });
+
+Usuario.hasMany(Auditoria, { foreignKey: "id_usuario" });
+Modulo.hasMany(Auditoria, { foreignKey: "id_modulo" });
