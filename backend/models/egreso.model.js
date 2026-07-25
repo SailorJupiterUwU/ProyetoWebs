@@ -69,7 +69,7 @@ const Egreso = sequelize.define(
     },
     {
         tableName: "egresos",
-        timestamps: false
+        timestamps: true
     }
 );
 

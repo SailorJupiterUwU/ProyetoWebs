@@ -59,7 +59,7 @@ const Alicuota = sequelize.define(
     },
     {
         tableName: "alicuotas",
-        timestamps: false
+        timestamps: true
     }
 );
 

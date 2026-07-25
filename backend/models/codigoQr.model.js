@@ -65,7 +65,7 @@ const CodigoQR = sequelize.define(
     },
     {
         tableName: "codigos_qr",
-        timestamps: false
+        timestamps: true
     }
 );
 
