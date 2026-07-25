@@ -8,11 +8,12 @@ const NAV_ITEMS = [
   { to: '/', icon: 'dashboard', label: 'Dashboard', modulo: 'Dashboard', roles: ['Directiva', 'Admin', 'Presidenta'] },
   { to: '/usuarios', icon: 'group', label: 'Usuarios', modulo: 'Usuarios', roles: ['Directiva', 'Admin', 'Presidenta'] },
   { to: '/roles', icon: 'shield_person', label: 'Roles', modulo: 'Roles', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/viviendas', icon: 'home_work', label: 'Viviendas', modulo: 'Viviendas', roles: ['Directiva', 'Admin', 'Presidenta'] },
   { to: '/presupuesto', icon: 'account_balance_wallet', label: 'Presupuestos', modulo: 'Presupuestos', roles: ['Directiva', 'Admin', 'Presidenta'] },
   { to: '/ingresos', icon: 'receipt_long', label: 'Ingresos', modulo: 'Ingresos', roles: ['Directiva', 'Residente', 'Admin', 'Presidenta'] },
   { to: '/egresos', icon: 'trending_down', label: 'Egresos', modulo: 'Egresos', roles: ['Directiva', 'Admin', 'Presidenta'] },
   { to: '/seguridad/generar', icon: 'qr_code_2', label: 'Control QR', modulo: 'Control QR', roles: ['Directiva', 'Residente', 'Guardia', 'Admin', 'Presidenta'] },
-  { to: '/auditoria', icon: 'change_history', label: 'Auditoría', modulo: 'Auditoria', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/auditoria', icon: 'change_history', label: 'Auditoria', modulo: 'Auditoria', roles: ['Directiva', 'Admin', 'Presidenta'] },
 ];
 
 const Layout = ({ children }) => {
