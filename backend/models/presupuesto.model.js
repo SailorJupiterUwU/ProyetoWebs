@@ -4,11 +4,23 @@ const sequelize = require("../config/sequelize.config");
 const Presupuesto = sequelize.define(
     "presupuesto",
     {
+        id_presupuesto: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
         anio: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: { msg: "El año es requerido" }
+            }
+        },
+        total: {
+            type: DataTypes.DECIMAL(12, 2),
+            allowNull: false,
+            validate: {
+                notNull: { msg: "El total es requerido" }
             }
         },
         archivo_excel: {
@@ -29,7 +41,7 @@ const Presupuesto = sequelize.define(
     },
     {
         tableName: "presupuestos",
-        timestamps: false
+        timestamps: true
     }
 );
 
