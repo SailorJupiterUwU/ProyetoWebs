@@ -6,7 +6,7 @@ const Usuario = require("../models/usuario.model");
  * Verifica el token JWT (CU-01, postcondición: sesión autenticada).
  * Adjunta el usuario decodificado a req.usuario.
  */
-async function verificarToken(req, res, next) {
+async function autenticacion(req, res, next) {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1]; // formato: "Bearer <token>"
 
@@ -35,7 +35,7 @@ async function verificarToken(req, res, next) {
  * Middleware de autorización por rol.
  * Uso: authorize(["Directiva"])
  */
-function authorize(rolesPermitidos = []) {
+function autorizacion(rolesPermitidos = []) {
     return (req, res, next) => {
         if (!req.usuario || !rolesPermitidos.includes(req.usuario.rol)) {
             return res.status(403).json({ mensaje: "No tiene permisos para realizar esta acción" });
@@ -44,4 +44,9 @@ function authorize(rolesPermitidos = []) {
     };
 }
 
-module.exports = { verificarToken, authorize };
+module.exports = {
+    autenticacion,
+    autorizacion,
+    verificarToken: autenticacion,
+    authorize: autorizacion
+};

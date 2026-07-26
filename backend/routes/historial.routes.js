@@ -1,6 +1,7 @@
 const router = require("express").Router();
-const historialController = require("../controllers/historial.controller");
+const auditoriaController = require("../controllers/auditoria.controller");
+const { autenticacion, autorizacion } = require("../middlewares/auth.middleware");
 
-router.get("/", historialController.listar);
+router.get("/", autenticacion, autorizacion(["Presidenta", "Tesorera"]), auditoriaController.listar);
 
 module.exports = router;
