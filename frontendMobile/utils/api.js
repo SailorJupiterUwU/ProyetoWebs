@@ -1,10 +1,12 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authEvents } from './authEvents';
 
 /**
  * Instancia centralizada de Axios con interceptores
  */
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/',
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -13,8 +15,8 @@ const api = axios.create({
 
 // Interceptor para agregar token de autenticación
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
+  async (config) => {
+    const token = await AsyncStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,16 +28,12 @@ api.interceptors.request.use(
 // Interceptor para manejar errores globales
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      // Redirigir a login si no está autenticado o el token expiró
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      
-      // Solo redirigir si no estamos ya en login
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
+      await AsyncStorage.multiRemove(['authToken', 'userData']);
+      // En web se redirigía con window.location; en RN el AuthContext
+      // escucha este evento y limpia su estado / navega a Login.
+      authEvents.emitUnauthorized();
     }
     return Promise.reject(error);
   }

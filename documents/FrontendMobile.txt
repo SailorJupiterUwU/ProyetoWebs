@@ -1,0 +1,136 @@
+================================================================================
+          DOCUMENTACIÓN TÉCNICA DEL PROYECTO MÓVIL - CONDOSECURE
+================================================================================
+
+Este documento describe la arquitectura, tecnologías, flujos de navegación y
+funciones del aplicativo móvil de CondoSecure, diseñado para residentes y
+personal de seguridad.
+
+--------------------------------------------------------------------------------
+1. TECNOLOGÍAS UTILIZADAS
+--------------------------------------------------------------------------------
+La aplicación está construida sobre un entorno moderno de desarrollo móvil:
+
+* React Native (v0.81.5): Framework base para la creación de aplicaciones
+  nativas utilizando JavaScript y React.
+* Expo (v54.0.35): Plataforma y conjunto de herramientas que facilitan el
+  desarrollo, despliegue y acceso a APIs nativas (Cámara, Archivos, etc.).
+* React Navigation (v7): Gestión del enrutamiento mediante navegadores de
+  pila (Stack) y de pestañas (Bottom Tabs).
+* Expo Camera (v17): Integración con el hardware de la cámara para el escaneo
+  de códigos QR en tiempo real.
+* Axios: Cliente HTTP para la comunicación con la API centralizada.
+* React Native Paper / Estilos Nativos: Diseño visual optimizado para móviles
+  con retroalimentación táctil y componentes nativos.
+* AsyncStorage: Persistencia local de la sesión del usuario en el dispositivo.
+
+--------------------------------------------------------------------------------
+2. ESTRUCTURA DEL PROYECTO
+--------------------------------------------------------------------------------
+La estructura sigue un patrón modular similar al proyecto web para facilitar
+el mantenimiento compartido:
+
+frontendMobile/
+├── App.js                   # Punto de entrada, configuración de AuthProvider y navegación raíz.
+├── components/              # Componentes de navegación y UI específicos:
+│   └── MainTabNavigator.jsx # Navegación principal por pestañas (filtro por roles).
+├── context/                 # Estado global:
+│   └── AuthContext.jsx      # Gestión de sesión, tokens y persistencia con AsyncStorage.
+├── hooks/                   # Lógica de negocio móvil (Hooks):
+│   ├── useAuth.js           # Servicios de identidad y registro.
+│   ├── useQr.js             # Lógica de validación y registro de accesos QR.
+│   ├── useVisitantes.js     # Gestión de pases de visita generados hoy.
+│   └── useViviendas.js      # Listado de viviendas para formularios.
+├── pages/                   # Pantallas principales (Screens):
+│   ├── LoginScreen.jsx      # Inicio de sesión.
+│   ├── RegisterScreen.jsx   # Registro de residentes con carga de foto (ImagePicker).
+│   ├── GeneratePassScreen.jsx # Emisión de pases y visualización de QR.
+│   └── ScannerScreen.jsx    # Lector de códigos para personal de seguridad.
+└── utils/                   # Utilidades compartidas:
+    ├── api.js               # Instancia de Axios configurada para el móvil.
+    ├── endpoints.js         # Diccionario de rutas de la API.
+    ├── helpers.js           # Formateadores y manejadores de errores.
+    └── validators.js        # Validadores de formularios (Email, Cédula EC).
+
+--------------------------------------------------------------------------------
+3. FLUJOS DE NAVEGACIÓN (APP FLOW)
+--------------------------------------------------------------------------------
+
+3.1. Enrutamiento Raíz (Root Navigator)
+La aplicación evalúa el estado `isAuthenticated` del `AuthContext`:
+- Si NO está autenticado: Muestra el `AuthStack` (Login -> Register).
+- Si ESTÁ autenticado: Muestra el `AppStack` (Navegador Principal de Pestañas).
+
+3.2. Flujo del Residente (Generación de Pases)
+1. El residente accede a la pestaña "Control QR" (`GeneratePassScreen`).
+2. Completa los datos de su invitado (Nombre, Cédula, Fecha/Hora, Vehículo).
+3. Al presionar "Generar Código QR", se consume la API y se recibe el hash cifrado.
+4. El frontend renderiza dinámicamente la imagen del código QR.
+5. El usuario puede presionar "Compartir por WhatsApp" para enviar el pase
+   directamente al contacto mediante un `Linking` profundo.
+6. En la parte inferior, puede visualizar sus pases generados hoy y su estado actual.
+
+3.3. Flujo del Guardia (Control de Acceso)
+1. El guardia inicia sesión y el sistema detecta su rol, permitiéndole ver
+   los botones de seguridad.
+2. Accede al "Escáner de Garita" (`ScannerScreen`).
+3. El sistema solicita permisos de cámara y activa el visor de `CameraView`.
+4. Al detectar un código QR, el sistema extrae el hash y lo valida automáticamente.
+5. Si es válido, muestra el panel verde con la ficha del visitante.
+6. El guardia presiona "Registrar Ingreso" al momento de entrar o "Registrar Salida".
+7. Las acciones actualizan el estado del QR en el servidor para evitar doble uso.
+
+--------------------------------------------------------------------------------
+4. DETALLE DE PANTALLAS (SCREENS)
+--------------------------------------------------------------------------------
+
+* LoginScreen:
+  Interfaz con validación de credenciales. Almacena el JWT de forma persistente
+  en el dispositivo para evitar re-logueos constantes.
+
+* RegisterScreen:
+  Formulario extendido para residentes. Utiliza `expo-image-picker` para permitir
+  al usuario tomar una foto o elegirla de la galería para su perfil.
+
+* GeneratePassScreen:
+  Módulo central para residentes.
+  - Implementa selectores nativos (`Picker`) para viviendas.
+  - Usa `DateTimePicker` para una selección precisa de horarios de visita.
+  - Renderiza la visualización previa del último QR generado con detalles del destino.
+  - Muestra un historial rápido de "Pases de Hoy".
+
+* ScannerScreen:
+  Módulo táctico para personal de garita.
+  - Posee un visor de cámara interactivo.
+  - Opción de "Ingreso Manual" mediante un Modal para casos donde la cámara falle
+    o el código esté dañado.
+  - Pantalla de resultados con colores semafóricos (Verde: Válido / Rojo: Denegado).
+  - Botones de acción rápida: Ingreso, Salida y Revocación de pases.
+
+--------------------------------------------------------------------------------
+5. HOOKS Y FUNCIONES DE NEGOCIO
+--------------------------------------------------------------------------------
+
+* useAuth: Maneja el ciclo de vida de la identidad (login, registro, logout).
+* useQr: Expone los métodos de interacción con el motor de seguridad QR del backend:
+  - `validar(codigo)`: Verifica integridad y vigencia.
+  - `registrarIngreso(id)`: Asienta la entrada física.
+  - `registrarSalida(id)`: Cierra la visita.
+  - `revocar(id)`: Invalida el pase preventivamente.
+* useVisitantes: Recupera los pases asociados al usuario en el día actual.
+
+--------------------------------------------------------------------------------
+6. CONFIGURACIÓN Y ENDPOINTS
+--------------------------------------------------------------------------------
+La aplicación consume la misma API centralizada que la versión web. Los endpoints
+están mapeados en `utils/endpoints.js` y la URL base se configura dinámicamente
+preferiblemente desde variables de entorno (`EXPO_PUBLIC_API_URL`).
+
+Ejemplos de endpoints móviles clave:
+- POST `/qr/validar`: Núcleo de la seguridad en garita.
+- POST `/visitantes`: Creación de nuevas invitaciones con hash único.
+- POST `/auth/registro`: Registro con payload Multipart para imágenes.
+
+================================================================================
+Fin de la Documentación del Proyecto Móvil. CondoSecure 2026.
+================================================================================

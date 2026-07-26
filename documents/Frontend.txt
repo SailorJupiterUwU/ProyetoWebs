@@ -1,0 +1,419 @@
+================================================================================
+          DOCUMENTACIÓN TÉCNICA DEL PROYECTO FRONTEND - CONDOSECURE
+================================================================================
+
+Este documento contiene la especificación detallada del diseño, arquitectura,
+flujos de datos, funciones de negocio, endpoints consumidos, vistas de interfaz
+y tecnologías implementadas en el frontend de CondoSecure.
+
+--------------------------------------------------------------------------------
+1. TECNOLOGÍAS UTILIZADAS
+--------------------------------------------------------------------------------
+El frontend de CondoSecure está desarrollado bajo un stack moderno de desarrollo web:
+
+* React (v19.2.7): Biblioteca principal para la construcción de interfaces de
+  usuario basadas en componentes reactivos y declarativos.
+* Vite (v8.1.1): Herramienta de compilación ultrarrápida (bundler) que sirve como
+  entorno de desarrollo y empaquetador para producción con recarga en caliente (HMR).
+* React Router DOM (v7.18.1): Biblioteca de enrutamiento dinámico para navegar
+  entre páginas sin recargar la aplicación (SPA).
+* Axios (v1.18.1): Cliente HTTP basado en promesas para consumir los servicios
+  de la API del backend.
+* CSS Modules: Estrategia de diseño basada en hojas de estilo en cascada (CSS)
+  con ámbito local por componente. Esto evita colisiones de clases globales y
+  mantiene el diseño modular.
+* Material Symbols / Icons: Conjunto de fuentes tipográficas para cargar íconos
+  vectorizados limpios de manera nativa (mediante clases css .material-symbols-outlined).
+
+--------------------------------------------------------------------------------
+2. ARQUITECTURA Y ESTRUCTURA DE DIRECTORIOS
+--------------------------------------------------------------------------------
+El proyecto sigue una arquitectura desacoplada y orientada a capas que separa
+la presentación, la lógica de estado y la comunicación con el servidor:
+
+src/
+├── assets/                  # Recursos estáticos (imágenes PNG, logotipos, etc.).
+├── components/comunes/      # Componentes UI globales, reutilizables y sin estado de negocio pesado:
+│   ├── Button/              # Botón estilizado dinámico con variantes visuales.
+│   ├── Input/               # Campos de formulario con estilos estandarizados.
+│   ├── Layout/              # Contenedor principal de la app con el Sidebar, Header, Footer e información del usuario.
+│   ├── LoadingSpinner/      # Spinner indicador de carga global y local.
+│   └── PageHeader/          # Encabezados de páginas con migas de pan (breadcrumbs) y acciones rápidas.
+├── context/                 # Proveedores de contexto global (React Context):
+│   └── AuthContext.jsx      # Estado global de sesión, token JWT y datos de usuario persistidos.
+├── hooks/                   # Hooks personalizados para encapsular la lógica de negocio y peticiones Axios:
+│   ├── useAudit.js          # Control de auditoría del sistema.
+│   ├── useAuth.js           # Inicio de sesión, registro, recuperación y cierre de sesión.
+│   ├── useDashboard.js      # Métricas y gráficos del panel de control.
+│   ├── useDeudaVivienda.js  # Carga de alícuotas o multas pendientes por vivienda.
+│   ├── useEgresos.js        # Gestión de egresos y facturas.
+│   ├── useIngresos.js       # Registro de ingresos (alícuotas y multas) con archivos de comprobantes.
+│   ├── usePresupuesto.js    # Carga e importación de presupuestos anuales y asignaciones por rubro.
+│   ├── useProveedores.js    # Directorio de proveedores.
+│   ├── useQr.js             # Validación en tiempo real de pases QR por garita.
+│   ├── useReportes.js       # Generación y descarga de archivos PDF/Excel financieros.
+│   ├── useRoles.js          # Administración de roles y permisos modulares.
+│   ├── useRubros.js         # Catálogo de rubros contables.
+│   ├── useSolicitudes.js    # Listado de solicitudes de nuevos usuarios residentes pendientes de aprobación.
+│   ├── useUsers.js          # Listado y gestión general de usuarios activos en la plataforma.
+│   ├── useVisitantes.js     # Creación de invitaciones y registro de visitas para el Control QR.
+│   └── useViviendas.js      # Gestión de catastros de viviendas y alícuotas.
+├── pages/                   # Vistas/Vistas de enrutamiento (Páginas principales de la SPA):
+│   ├── Audit/               # Historial del sistema y registros de auditoría detallados.
+│   ├── Budgets/             # Importación de presupuesto base (.xlsx, .xls) y asignación de rubros.
+│   ├── Dashboard/           # Vista principal con indicadores financieros rápidos, gráficos y movimientos recientes.
+│   ├── Expenses/            # Registro, control y liquidación de egresos (comprobantes de pago).
+│   ├── Houses/              # Registro de viviendas de la copropiedad, porcentajes de alícuotas y estados de solvencia.
+│   ├── Income/              # Gestión de ingresos recibidos, comprobación de alícuotas y multas canceladas.
+│   ├── Login/               # Formulario de inicio de sesión de usuario.
+│   ├── Register/            # Formulario de registro público para residentes con carga de imagen/foto.
+│   ├── Roles/               # Visualización y edición de accesos de los roles a módulos específicos.
+│   ├── Security/            # Módulo de Control de Acceso:
+│   │   ├── GeneratePass/    # Formulario para residentes que genera invitaciones y códigos QR temporales.
+│   │   └── Scanner/         # Interfaz para el personal de garita con escáner e ingreso manual de códigos QR.
+│   └── Users/               # Panel administrativo de usuarios dividido en dos pestañas principales (Registrados y Pendientes).
+└── utils/                   # Herramientas de soporte comunes del frontend:
+    ├── api.js               # Instancia de Axios con interceptores globales para inyección de Token y detección automática de código 401.
+    ├── endpoints.js         # Catálogo unificado de URLs y endpoints de la API del Backend.
+    ├── helpers.js           # Formateadores numéricos de moneda (USD), truncado de texto, conversor de fechas y manejo de errores HTTP.
+    └── validators.js        # Validadores de estructura como correos electrónicos, contraseñas robustas y Cédula de Identidad Ecuatoriana.
+
+--------------------------------------------------------------------------------
+3. FLUJOS PRINCIPALES DEL SISTEMA (USER FLOWS)
+--------------------------------------------------------------------------------
+
+3.1. Flujo de Registro Público y Aprobación
+1. Un residente ingresa a la ruta pública `/register`.
+2. Completa sus datos: Nombres, Apellidos, Cédula de Identidad (validada en el frontend),
+   Número de vivienda, Correo electrónico, Contraseña y una Foto de perfil.
+3. El frontend envía la petición mediante un payload `FormData` (Multipart) al endpoint
+   de registro. Esto genera una solicitud (en estado pendiente) en el backend.
+4. El usuario ve un mensaje de éxito indicando que su cuenta está bajo revisión.
+5. El administrador inicia sesión, ingresa al módulo de `/usuarios` y selecciona la
+   pestaña de "Pendientes de Aprobación".
+6. El administrador puede Aprobar (lo que le asigna el rol y activa la cuenta) o
+   Rechazar la solicitud (solicitando ingresar el motivo de rechazo que se enviará por mail).
+
+3.2. Flujo de Autenticación, Sesión y Seguridad Dinámica
+1. El usuario inicia sesión en la ruta `/login`.
+2. Tras la validación del correo y contraseña, el backend devuelve un Token JWT y
+   un objeto de datos con el usuario y su rol asociado.
+3. La función `login(userData, token)` del `AuthContext` guarda estas credenciales
+   en el almacenamiento local del navegador (`localStorage`) con las claves
+   `authToken` y `userData`.
+4. El enrutamiento de React (`App.jsx`) redirige al usuario a la ruta raíz `/` (Dashboard).
+5. Cada petición posterior de Axios pasa automáticamente por el Interceptor de Peticiones
+   en `api.js`, el cual busca el `authToken` en `localStorage` y lo adjunta en los headers
+   como `Authorization: Bearer <token>`.
+6. Si el backend responde con un código HTTP `401 Unauthorized` (sesión vencida o inválida),
+   el Interceptor de Respuestas de Axios intercepta el error, borra las claves de sesión
+   locales en el navegador y redirige automáticamente al usuario al `/login`.
+7. El componente `Layout.jsx` evalúa de forma dinámica los accesos a los módulos de
+   navegación. Solo renderiza los botones de la barra de navegación lateral cuyos nombres de
+   módulos o etiquetas coincidan con el array de `user.modulos` devuelto por el backend,
+   o mediante un rol coincidente como fallback secundario.
+
+3.3. Flujo de Gestión de Presupuesto Anual
+1. Un miembro de la directiva ingresa a la vista `/presupuesto`.
+2. Selecciona un año para consultar. Si no se ha creado presupuesto base, puede arrastrar
+   o seleccionar un archivo estructurado en Excel (`.xlsx`, `.xls`) o `.csv`.
+3. El hook `usePresupuesto` envía el archivo vía Multipart FormData al backend.
+4. El backend parsea el presupuesto, genera la cabecera del presupuesto anual y los rubros
+   asociados e inserta la información de forma relacional.
+5. El usuario puede ver en tiempo real el monto total presupuestado, el gasto ejecutado
+   y el saldo disponible actualizados.
+6. A través de la interfaz web, el usuario también puede agregar manualmente nuevos rubros,
+   o editar el monto asignado a rubros ya existentes, lo que recalculará los totales.
+
+3.4. Flujo de Liquidación y Control Financiero (Ingresos/Egresos)
+* Ingresos:
+  1. El usuario administrador entra a `/ingresos`.
+  2. Al dar clic en "Nuevo Ingreso", se despliega un formulario. Al seleccionar una vivienda,
+     el hook `useDeudaVivienda` carga en tiempo real la lista de alícuotas o multas vencidas
+     para esa vivienda específica.
+  3. El usuario completa los detalles del pago, ingresa una descripción y adjunta el
+     archivo del comprobante de transferencia bancaria si existiera.
+  4. Los datos se transmiten al backend para asentar el cobro y registrar la transacción.
+* Egresos:
+  1. El administrador ingresa a `/egresos`.
+  2. Puede consultar un resumen financiero mensual (monto por vencer, total pagado, etc.)
+     y un listado paginado de facturas o gastos generados.
+  3. Puede registrar un "Nuevo Egreso" vinculando un proveedor, un rubro del catálogo,
+     el número de factura física, fecha del comprobante, valor adeudado y número de cheque.
+  4. Desde la tabla, es posible marcar una factura pendiente en estado "Aprobado" como
+     "Pagado" de manera rápida.
+
+3.5. Flujo de Control de Visitas (Códigos QR)
+* Generación del Pase (Hecho por un Residente o Administrador):
+  1. El usuario entra a `/seguridad/generar`.
+  2. Completa los datos de la visita: Nombres, apellidos, cédula de identidad, número de personas,
+     vivienda de destino, fecha/hora de validez inicial (válido desde) e inicial final (válido hasta).
+  3. Indica si el visitante ingresará con vehículo e introduce el número de placa.
+  4. Al enviar el formulario, el backend devuelve un código hash encriptado.
+  5. El frontend renderiza un código QR interactivo correspondiente a este hash y activa un botón de
+     compartido rápido por WhatsApp que pre-redacta un texto con la invitación.
+* Validación del Pase (Hecho por un Guardia en Garita):
+  1. El guardia entra a la ruta `/seguridad/escanear` (Scanner) desde su tablet, teléfono o PC.
+  2. El sistema simula la cámara (con láser de escaneo visual) o permite introducir el código hash de manera manual.
+  3. Se envía el código de validación al backend mediante el endpoint `POST /qr/validar`.
+  4. Si el código es inválido, vencido o ya fue usado, se enciende un indicador visual rojo con la
+     leyenda "NO VÁLIDO" y describe el motivo de denegación (ej. "Código Expirado", "Código Ya Usado").
+  5. Si el código es válido, se activa un panel verde con la leyenda "VÁLIDO - ACCESO PERMITIDO", junto con
+     los datos de la visita (nombre, cédula, cantidad de personas, vivienda destino y placa del vehículo).
+  6. Dependiendo de la situación, el guardia cuenta con botones rápidos para registrar el evento:
+     - "Registrar Ingreso": Envía una actualización que registra la hora de entrada y actualiza el estado del QR.
+     - "Registrar Salida": Envía la actualización que cierra la visita.
+     - "Revocar": Invalida el QR inmediatamente antes de que expire naturalmente.
+
+--------------------------------------------------------------------------------
+4. DETALLE DE LAS VISTAS (PÁGINAS)
+--------------------------------------------------------------------------------
+
+* Dashboard (`/pages/Dashboard/Dashboard.jsx`):
+  El cuadro de mando del condominio. Consume `useDashboard` para poblar tarjetas de resumen:
+  Ingresos Totales, Egresos Totales y Saldo Neto en caja. Muestra gráficos de "Ingresos vs Egresos"
+  mensuales y una sección de cartera vencida con el total de viviendas en mora. Adicionalmente,
+  enlista los movimientos (transacciones) financieros más recientes en el conjunto residencial.
+
+* Users (`/pages/Users/Users.jsx`):
+  Vista administrativa. Presenta un menú de pestañas para conmutar entre "Usuarios Registrados"
+  (consumiendo `useUsers`) y "Pendientes de Aprobación" (consumiendo `useSolicitudes`).
+  - Usuarios Registrados: Lista los usuarios activos e inactivos del conjunto. Cuenta con un
+    formulario modal para la creación manual de usuarios (asignándoles rol y datos básicos)
+    y un control rápido para activar/desactivar cuentas en tiempo real.
+  - Pendientes: Enlista las solicitudes que completaron los residentes externamente. Muestra
+    los datos y botones para "Aprobar" o "Rechazar" (este último abre un campo de texto para
+    ingresar la causa del rechazo).
+
+* Budgets (`/pages/Budgets/Budgets.jsx`):
+  Control de presupuesto anual. Cuenta con un selector de año (año actual, anterior, siguiente).
+  Muestra una barra de progreso que contrasta el Monto Asignado total contra el Gasto Ejecutado real.
+  Detalla una cuadrícula (tabla) de rubros aprobados del presupuesto, permitiendo editar el monto
+  con un formulario "en línea" o agregar un rubro nuevo desde el catálogo disponible mediante modal.
+
+* Expenses (`/pages/Expenses/Expenses.jsx`):
+  Seguimiento de egresos del condominio. Incorpora filtros robustos (por fecha, número de factura,
+  rango de montos y estado). Permite crear egresos nuevos y vincularlos a los proveedores dados de alta.
+  Adicionalmente, consume el hook `useReportes` para exportar de forma automatizada un reporte de
+  egresos mensuales en formato PDF o Excel listo para auditoría.
+
+* Income (`/pages/Income/Income.jsx`):
+  Seguimiento de ingresos del condominio. Muestra un resumen rápido de ingresos recaudados en el mes
+  en curso, multas cobradas y recibos pendientes de pago. Cuenta con una sección visual para registrar
+  ingresos, que requiere seleccionar la vivienda y buscar de forma reactiva las alícuotas o multas que
+  se asocian al pago. Admite la descarga del reporte de ingresos mensual.
+
+* Houses (`/pages/Houses/Houses.jsx`):
+  Directorio de catastro de viviendas. Expone el número de la vivienda, el copropietario asignado, el
+  porcentaje alícuota sobre el que calcula sus pagos y su estado financiero (Solvente o En Mora).
+  Permite crear nuevas viviendas, editar el coeficiente de alícuotas o cambiar su estado administrativo.
+
+* Roles (`/pages/Roles/Roles.jsx`):
+  Configuración de seguridad. Lista los roles definidos en el sistema (ej. Directiva, Residente,
+  Guardia, Admin, Presidenta). Al pulsar el botón "Ver Permisos", el frontend abre un modal,
+  llama al servicio `/roles/:id/modulos` y carga la lista de módulos del sistema marcando con "checkboxes"
+  los módulos que este rol tiene autorizados para leer o escribir. El administrador puede marcar o
+  desmarcar estas casillas y guardar los cambios.
+
+* Audit (`/pages/Audit/Audit.jsx`):
+  Módulo de bitácora y auditoría forense. Presenta un visor estructurado de logs de acciones. El usuario
+  puede buscar acciones específicas por un rango de fechas ("Desde/Hasta"), filtrar por el Rol de los usuarios,
+  o ingresar un texto en tiempo real para buscar por el nombre exacto de un usuario. Detalla la fecha de
+  la transacción, la acción realizada, el módulo afectado, la IP del cliente y la descripción del cambio.
+
+* Security/GeneratePass (`/pages/Security/GeneratePass/GeneratePass.jsx`):
+  Generador de pases de acceso temporal. Es el panel mediante el cual los usuarios emiten un pase
+  QR dinámico. Cuenta con validaciones estrictas de fechas y horas, campos de entrada dinámicos para placas,
+  y un renderizador visual del código QR generado. Incorpora la API de compartición hacia WhatsApp Web.
+
+* Security/Scanner (`/pages/Security/Scanner/Scanner.jsx`):
+  Interfaz del guardia de seguridad. Proporciona una simulación visual de un viewport de cámara
+  con un láser rojo animado y un marco de escaneo. Permite la introducción manual de códigos alfanuméricos.
+  Dependiendo del resultado devuelto por la API de validación, renderiza de forma clara y vistosa los paneles
+  de confirmación y las acciones de registro de ingreso y egreso de visitas.
+
+* Login (`/pages/Login/Login.jsx`) y Register (`/pages/Register/Register.jsx`):
+  Formularios de autenticación y de autoservicio de registro inicial que sirven como punto de entrada
+  público al ecosistema residencial CondoSecure.
+
+--------------------------------------------------------------------------------
+5. HOOKS PERSONALIZADOS (BUSINESS LOGIC)
+--------------------------------------------------------------------------------
+
+* `useAuth()`
+  Conecta la lógica de inicio y cierre de sesión con los endpoints de autenticación.
+  - Retorna: `{ login, registro, recuperarPassword, resetPassword, logout, loading, error }`
+  - `login(correo, password)`: Realiza el POST a `/auth/login` y sincroniza las respuestas exitosas con `AuthContext`.
+  - `registro(formData)`: Envía un objeto FormData con los datos del usuario residente y su foto de perfil adjunta.
+
+* `useDashboard(anio)`
+  Extrae la información consolidada para la vista inicial del condominio.
+  - Retorna: `{ resumen, chartData, cartera, movimientos, loading, error, refetch }`
+  - Realiza un `Promise.all` para ejecutar de forma concurrente cuatro consultas HTTP: el resumen general,
+    los datos mensuales de ingresos contra egresos del año indicado, el consolidado de cartera y
+    la lista de los 10 últimos movimientos.
+
+* `useUsers()`
+  Proporciona las herramientas para el control y administración del catálogo de residentes y personal.
+  - Retorna: `{ data, loading, error, refetch, createUser, updateStatus }`
+  - `createUser(payload)`: Envía una petición POST para dar de alta un usuario nuevo desde la directiva.
+  - `updateStatus(id, estado)`: Cambia el estado de una cuenta de usuario a 'activo' o 'inactivo'.
+
+* `useSolicitudes()`
+  Gestiona la aprobación o rechazo de residentes registrados externamente.
+  - Retorna: `{ data, resumen, loading, error, refetch, aprobar, rechazar }`
+  - `aprobar(id)`: Llama a `/usuarios/solicitudes/:id/aprobar` para autorizar una cuenta.
+  - `rechazar(id, motivo)`: Envía el id y el motivo de denegación a `/usuarios/solicitudes/:id/rechazar`.
+
+* `useViviendas()`
+  Administra el directorio de catastros.
+  - Retorna: `{ data, loading, error, refetch, crearVivienda, editarVivienda, cambiarEstado }`
+
+* `usePresupuesto(anioInicial)`
+  Hook de control financiero base. Sincroniza y recarga presupuestos de forma reactiva.
+  - Retorna: `{ presupuestos, anio, setAnio, presupuestoActual, rubros, totales, loading, error, uploadBudget, agregarRubro, editarMontoRubro }`
+  - `uploadBudget(archivo)`: Realiza una carga Multipart FormData del archivo Excel contable enviado por el usuario.
+
+* `useIngresos()` / `useEgresos()`
+  Encapsulan las operaciones de egresos e ingresos, control de facturas, filtros avanzados de búsqueda y paginación.
+  - `useIngresos` retorna: `{ data, total, page, setPage, resumen, distribucion, loading, error, fetchIngresos, crearIngreso }`
+  - `useEgresos` retorna: `{ data, total, page, setPage, resumen, loading, error, applyFilters, crearEgreso, editarEgreso }`
+
+* `useQr()`
+  Maneja las operaciones lógicas de escaneo y cambio de estado de pases de seguridad.
+  - Retorna: `{ validar, registrarIngreso, registrarSalida, revocar, validando, procesando }`
+  - `validar(codigo)`: Llama al endpoint de validación de hashes QR retornando si el pase es válido y los datos del visitante.
+
+* `useVisitantes()`
+  Permite la creación de pases de visita por parte de los copropietarios residentes.
+  - Retorna: `{ data, loading, error, refetch, crearVisitante }`
+
+* `useRoles()`
+  Configura la asignación de roles y de módulos permitidos por rol.
+  - Retorna: `{ data, loading, error, refetch, updateStatus, getModulos, updateModulos }`
+
+* `useAudit(immediate)`
+  Consulta las trazas de logs de auditoría general.
+  - Retorna: `{ data, loading, error, refetch }`
+
+--------------------------------------------------------------------------------
+6. UTILIDADES, AYUDANTES Y FORMATEADORES (UTILS)
+--------------------------------------------------------------------------------
+
+6.1. Helpers (`src/utils/helpers.js`)
+* `formatPrice(price, currency = 'USD')`: Formatea números crudos a una notación
+  de moneda estilizada y localizada en base al locale `es-EC` (ej. `1250.50` -> `$1.250,50`).
+* `truncateText(text, maxLength = 100)`: Limita la longitud visual de una cadena,
+  añadiendo puntos suspensivos en textos excesivamente largos.
+* `handleApiError(error)`: Parser estandarizado de errores Axios. Busca de forma jerárquica
+  la propiedad de mensaje devuelta por el servidor (`error.response.data.msg`,
+  `error.response.data.mensaje`, o `error.response.data.message`), ofreciendo un fallback
+  amigable de conexión o error desconocido ante incidentes de red.
+* `isEmptyObject(obj)`: Retorna si un objeto JavaScript carece de claves internas.
+* `generateId()`: Genera un ID hash temporal autocalculado con la estampa de tiempo
+  y caracteres pseudoaleatorios.
+* `formatDate(date)`: Formatea cadenas de tiempo ISO u objetos Date a un texto
+  legible y elegante (ej: `2026-07-25T14:30:00.000Z` -> `25 de julio de 2026, 14:30`).
+
+6.2. Validators (`src/utils/validators.js`)
+* `isValidEmail(email)`: Valida el patrón estándar de un correo electrónico válido.
+* `isValidPassword(password)`: Valida requisitos mínimos de fortaleza de claves
+  (mínimo 8 caracteres, al menos una letra mayúscula y al menos un número decimal).
+* `isValidPhone(phone)`: Valida formatos de números de teléfono celular o fijos.
+* `isValidCedula(cedula)`: Implementa el algoritmo de validación de Cédula de Identidad
+  Ecuatoriana mediante el algoritmo del "Módulo 10" (Coeficientes 2.1.2.1.2.1.2.1.2 y
+  cálculo del dígito verificador). Previene registros de usuarios con números de cédula falsos.
+
+--------------------------------------------------------------------------------
+7. ESPECIFICACIÓN DE ENDPOINTS DE LA API
+--------------------------------------------------------------------------------
+Los endpoints definidos en `src/utils/endpoints.js` conectan la app de React
+con el Backend Express/Sequelize. La URL base (`BASE_URL`) es inyectada dinámicamente
+mediante la variable de entorno `VITE_API_URL` (por defecto `http://localhost:3000/api`).
+
+7.1. Autenticación (`AUTH`)
+* POST  /auth/login                       Inicia sesión.
+* POST  /auth/registro                    Registra un nuevo usuario residente (Multipart).
+* POST  /auth/recuperar-password          Solicita un correo electrónico para recuperar clave.
+* POST  /auth/reset-password              Actualiza la contraseña con un token de verificación.
+* POST  /auth/logout                      Finaliza la sesión del lado del servidor.
+
+7.2. Usuarios y Solicitudes (`USUARIOS`)
+* GET   /usuarios                         Lista todos los usuarios (admite filtros de búsqueda y estado).
+* GET   /usuarios/:id                     Obtiene la información de un usuario específico.
+* POST  /usuarios                         Crea manualmente un usuario administrativo.
+* PUT   /usuarios/:id                     Actualiza datos de perfil de un usuario.
+* PATCH /usuarios/:id/estado              Activa o desactiva la cuenta de un usuario.
+* GET   /usuarios/:id/historial           Visualiza el historial transaccional del usuario.
+* GET   /usuarios/solicitudes             Lista las solicitudes de registro pendientes.
+* GET   /usuarios/solicitudes/historial   Historial de solicitudes procesadas.
+* PATCH /usuarios/solicitudes/:id/aprobar Aprueba una solicitud de registro.
+* PATCH /usuarios/solicitudes/:id/rechazar Rechaza una solicitud de registro (envía causa).
+
+7.3. Roles y Módulos (`ROLES` y `MODULOS`)
+* GET   /roles                            Lista todos los roles cargados.
+* POST  /roles                            Crea un nuevo rol en el sistema.
+* PUT   /roles/:id                        Actualiza el nombre o descripción de un rol.
+* PATCH /roles/:id/estado                 Cambia el estado de vigencia del rol.
+* GET   /roles/:id/modulos                Lista los módulos autorizados y denegados para el rol.
+* PUT   /roles/:id/modulos                Actualiza los permisos de acceso de un rol a los módulos.
+* GET   /modulos                          Cataloga los módulos globales del sistema CondoSecure.
+
+7.4. Presupuesto y Rubros (`PRESUPUESTO` y `RUBROS`)
+* GET   /presupuestos                     Lista los presupuestos anuales.
+* GET   /presupuestos/:id                 Consulta un presupuesto de forma detallada.
+* POST  /presupuestos/importar            Sube e importa un archivo Excel/CSV (Multipart).
+* GET   /presupuestos/:id/rubros          Muestra las asignaciones presupuestarias por rubro.
+* POST  /presupuestos/:id/rubros          Agrega un nuevo rubro contable a un presupuesto.
+* PUT   /presupuestos/:id/rubros/:idRubro Modifica la asignación financiera de un rubro.
+* GET   /rubros                           Catálogo general de rubros del condominio.
+* POST  /rubros                           Agrega una categoría de rubro.
+* PUT   /rubros/:id                       Edita la información de un rubro.
+
+7.5. Ingresos y Egresos (`INGRESOS` y `EGRESOS`)
+* GET   /ingresos                         Lista transacciones de ingreso paginadas y filtradas.
+* GET   /ingresos/resumen                 Dashboard del mes (ingresos totales, pendientes de cobro, multas).
+* GET   /ingresos/distribucion            Desglose de ingresos mensuales según conceptos.
+* GET   /ingresos/mis-pagos               Listado de pagos personales del residente autenticado.
+* GET   /ingresos/:id                     Consulta el detalle de un ingreso individual.
+* POST  /ingresos                         Registra un ingreso / cobro de alícuota o multa (Multipart).
+* GET   /egresos                          Lista transacciones de egreso con filtros y paginación.
+* GET   /egresos/resumen                  Métricas mensuales de egresos y facturas pendientes.
+* GET   /egresos/:id                      Detalle de un egreso contable.
+* POST  /egresos                          Registra un egreso / pago a proveedor.
+* PUT   /egresos/:id                      Actualiza datos o estado de un egreso.
+
+7.6. Catastros de Viviendas, Alícuotas y Multas (`VIVIENDAS`, `ALICUOTAS`, `MULTAS`)
+* GET   /viviendas                        Listado de viviendas del conjunto habitacional.
+* GET   /viviendas/:id                    Detalle y estado de solvencia de una casa.
+* POST  /viviendas                        Añade una vivienda al catastro.
+* PUT   /viviendas/:id                    Actualiza el propietario o porcentaje asignado.
+* PATCH /viviendas/:id/estado             Modifica el estado administrativo de una vivienda.
+* GET   /alicuotas                        Catálogo general de deudas por alícuotas condominiales.
+* GET   /alicuotas/mis-alicuotas          Muestra las alícuotas pendientes del usuario autenticado.
+* GET   /multas                           Listado general de multas emitidas en el conjunto.
+* GET   /multas/mis-multas                Visualiza las multas asociadas al residente actual.
+
+7.7. Reportes y Proveedores (`REPORTES` y `PROVEEDORES`)
+* GET   /reportes                         Lista de reportes históricos generados.
+* POST  /reportes                         Solicita compilar un reporte financiero (PDF/Excel).
+* GET   /reportes/:id/descargar           Descarga directa del binario del reporte de la API.
+* GET   /proveedores                      Directorio de contratistas y proveedores de servicios.
+* POST  /proveedores                      Registra un proveedor nuevo.
+* PUT   /proveedores/:id                  Actualiza la ficha técnica del proveedor.
+
+7.8. Visitantes, Auditoría e Historial (`VISITANTES`, `AUDITORIA`, `HISTORIAL`)
+* GET   /visitantes                       Muestra las visitas del día o del rango indicado.
+* POST  /visitantes                       Crea una invitación de visita (Genera hash QR).
+* GET   /auditoria                        Bitácora global de auditoría del sistema (logs).
+* GET   /historial                        Registro de historial acumulado.
+
+7.9. Control de Acceso de Pases QR (`QR`)
+* POST  /qr/validar                       Valida un código QR (recibe hash, retorna validez).
+* PATCH /qr/:id/ingreso                   Registra la hora exacta de ingreso del visitante.
+* PATCH /qr/:id/salida                    Registra la hora exacta de salida del visitante.
+* PATCH /qr/:id/revocar                   Invalida administrativamente un código QR activo.
+
+================================================================================
+Fin de la Documentación del Proyecto Frontend. CondoSecure 2026.
+================================================================================

@@ -25,19 +25,15 @@ export const ENDPOINTS = {
       RECHAZAR: (id) => `${BASE_URL}/usuarios/solicitudes/${id}/rechazar`,
     },
   },
-  CASAS: {
-    LISTAR: `${BASE_URL}/casas`,
-    OBTENER: (id) => `${BASE_URL}/casas/${id}`,
-    CREAR: `${BASE_URL}/casas`,
-    ACTUALIZAR: (id) => `${BASE_URL}/casas/${id}`,
-    ELIMINAR: (id) => `${BASE_URL}/casas/${id}`,
-  },
   ROLES: {
     LISTAR: `${BASE_URL}/roles`,
     CREAR: `${BASE_URL}/roles`,
     ACTUALIZAR: (id) => `${BASE_URL}/roles/${id}`,
     CAMBIAR_ESTADO: (id) => `${BASE_URL}/roles/${id}/estado`,
     MODULOS: (id) => `${BASE_URL}/roles/${id}/modulos`,
+  },
+  MODULOS: {
+    LISTAR: `${BASE_URL}/modulos`,
   },
   PRESUPUESTO: {
     LISTAR: `${BASE_URL}/presupuestos`,
@@ -78,9 +74,13 @@ export const ENDPOINTS = {
   },
   ALICUOTAS: {
     LISTAR: `${BASE_URL}/alicuotas`,
+    OBTENER: (id) => `${BASE_URL}/alicuotas/${id}`,
+    MIS_ALICUOTAS: `${BASE_URL}/alicuotas/mis-alicuotas`,
   },
   MULTAS: {
     LISTAR: `${BASE_URL}/multas`,
+    OBTENER: (id) => `${BASE_URL}/multas/${id}`,
+    MIS_MULTAS: `${BASE_URL}/multas/mis-multas`,
   },
   REPORTES: {
     LISTAR: `${BASE_URL}/reportes`,
@@ -105,6 +105,9 @@ export const ENDPOINTS = {
   },
   AUDITORIA: {
     LISTAR: `${BASE_URL}/auditoria`,
+  },
+  HISTORIAL: {
+    LISTAR: `${BASE_URL}/historial`,
   },
   DASHBOARD: {
     RESUMEN: `${BASE_URL}/dashboard/resumen`,
