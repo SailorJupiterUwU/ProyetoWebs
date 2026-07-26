@@ -10,6 +10,7 @@ import {
     Image,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import useAuth from '../hooks/useAuth';
 import { isValidPassword, isValidEmail, isValidCedula } from '../utils/validators';
@@ -93,10 +94,10 @@ const RegisterScreen = ({ navigation }) => {
 
     if (submitted) {
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
                 <View style={styles.card}>
                     <View style={styles.successBlock}>
-                        <MaterialIcons name="check_circle" size={56} color="#16a34a" />
+                        <MaterialIcons name="check-circle" size={56} color="#16a34a" />
                         <Text style={styles.title}>¡Solicitud Enviada!</Text>
                         <Text style={styles.subtitle}>
                             Tu solicitud fue enviada correctamente. La directiva revisará tu acceso y te
@@ -110,16 +111,16 @@ const RegisterScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <ScrollView contentContainerStyle={{ padding: 16 }}>
                 <View style={styles.card}>
                     <View style={styles.header}>
-                        <MaterialIcons name="shield_person" size={40} color="#f97316" />
+                        <MaterialIcons name="how-to-reg" size={40} color="#f97316" />
                         <Text style={styles.title}>Registro de Usuario</Text>
                         <Text style={styles.subtitle}>
                             Ingrese sus datos para generar la solicitud. La directiva verificará su estado.
@@ -193,7 +194,7 @@ const RegisterScreen = ({ navigation }) => {
                                 <Image source={{ uri: foto.uri }} style={styles.previewImage} />
                             ) : (
                                 <View style={styles.uploadIcon}>
-                                    <MaterialIcons name="cloud_upload" size={22} color="#584237" />
+                                    <MaterialIcons name="cloud-upload" size={22} color="#584237" />
                                 </View>
                             )}
                             <Text style={styles.uploadLabel}>
@@ -213,7 +214,7 @@ const RegisterScreen = ({ navigation }) => {
                             ) : (
                                 <>
                                     <Text style={styles.submitButtonText}>Enviar Solicitud</Text>
-                                    <MaterialIcons name="arrow_forward" size={18} color="#fff" />
+                                    <MaterialIcons name="arrow-forward" size={18} color="#fff" />
                                 </>
                             )}
                         </TouchableOpacity>
@@ -227,7 +228,7 @@ const RegisterScreen = ({ navigation }) => {
                     </View>
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 

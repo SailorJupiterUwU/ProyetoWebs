@@ -1,13 +1,14 @@
+// App.js
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AuthProvider, useAuthContext } from './context/AuthContext';
 import LoginScreen from './pages/LoginScreen';
 import RegisterScreen from './pages/RegisterScreen';
-import ScannerScreen from './pages/ScannerScreen';
 import MainTabNavigator from './components/MainTabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -17,14 +18,6 @@ const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Register" component={RegisterScreen} />
-  </Stack.Navigator>
-);
-
-// Se muestra con sesión iniciada: tabs de abajo + Scanner encima (no es un tab)
-const AppStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Main" component={MainTabNavigator} />
-    <Stack.Screen name="Scanner" component={ScannerScreen} />
   </Stack.Navigator>
 );
 
@@ -41,17 +34,19 @@ const RootNavigator = () => {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppStack /> : <AuthStack />}
+      {isAuthenticated ? <MainTabNavigator /> : <AuthStack />}
     </NavigationContainer>
   );
 };
 
 export default function App() {
   return (
-    <AuthProvider>
-      <RootNavigator />
-      <StatusBar style="auto" />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootNavigator />
+        <StatusBar style="auto" />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 

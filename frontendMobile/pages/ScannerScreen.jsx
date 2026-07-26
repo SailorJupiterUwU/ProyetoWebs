@@ -9,8 +9,9 @@ import {
     Modal,
     ActivityIndicator,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import useQr from '../hooks/useQr';
 
 const ScannerScreen = ({ navigation }) => {
@@ -69,196 +70,198 @@ const ScannerScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
-            <Text style={styles.pageTitle}>Garita Principal</Text>
-            <Text style={styles.pageSubtitle}>Control de Acceso</Text>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+                <Text style={styles.pageTitle}>Garita Principal</Text>
+                <Text style={styles.pageSubtitle}>Control de Acceso</Text>
 
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Lector de Código</Text>
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Lector de Código</Text>
 
-                <View style={styles.cameraViewport}>
-                    {!permission ? (
-                        <ActivityIndicator color="#f97316" />
-                    ) : !permission.granted ? (
-                        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-                            <MaterialIcons name="camera_alt" size={32} color="#f97316" />
-                            <Text style={styles.permissionText}>Otorgar permiso de cámara</Text>
-                        </TouchableOpacity>
-                    ) : cameraActive ? (
-                        <CameraView
-                            style={styles.camera}
-                            facing="back"
-                            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                            onBarcodeScanned={handleBarcodeScanned}
-                        />
-                    ) : (
-                        <View style={styles.cameraFrozen}>
-                            <MaterialIcons name="qr_code_scanner" size={56} color="rgba(249,115,22,0.5)" />
-                        </View>
-                    )}
-                    <View style={styles.scanFrame} pointerEvents="none" />
-                </View>
-
-                <View style={styles.waitingBlock}>
-                    <Text style={styles.waitingText}>
-                        {validando ? 'Validando código...' : 'Apunta la cámara al código QR'}
-                    </Text>
-                    <TouchableOpacity onPress={() => setShowManualModal(true)}>
-                        <Text style={styles.manualLink}>Ingresar código manualmente</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.card}>
-                {!scanResult ? (
-                    <Text style={styles.waitingText}>Aún no se ha validado ningún código.</Text>
-                ) : (
-                    <>
-                        <Text style={styles.cardTitle}>Resultado de Validación</Text>
-
-                        {scanResult.valido ? (
-                            <View style={styles.statusBlock}>
-                                <View style={[styles.statusIconWrap, styles.statusIconValid]}>
-                                    <MaterialIcons name="check_circle" size={40} color="#16a34a" />
-                                </View>
-                                <Text style={[styles.statusHeading, styles.statusHeadingValid]}>VÁLIDO</Text>
-                                <Text style={[styles.statusSub, styles.statusSubValid]}>ACCESO PERMITIDO</Text>
-                            </View>
+                    <View style={styles.cameraViewport}>
+                        {!permission ? (
+                            <ActivityIndicator color="#f97316" />
+                        ) : !permission.granted ? (
+                            <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+                                <MaterialIcons name="camera-alt" size={32} color="#f97316" />
+                                <Text style={styles.permissionText}>Otorgar permiso de cámara</Text>
+                            </TouchableOpacity>
+                        ) : cameraActive ? (
+                            <CameraView
+                                style={styles.camera}
+                                facing="back"
+                                barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                                onBarcodeScanned={handleBarcodeScanned}
+                            />
                         ) : (
-                            <View style={styles.statusBlock}>
-                                <View style={[styles.statusIconWrap, styles.statusIconInvalid]}>
-                                    <MaterialIcons name="cancel" size={40} color="#dc2626" />
-                                </View>
-                                <Text style={[styles.statusHeading, styles.statusHeadingInvalid]}>NO VÁLIDO</Text>
-                                <Text style={[styles.statusSub, styles.statusSubInvalid]}>
-                                    {scanResult.motivo || 'ACCESO DENEGADO'}
-                                </Text>
+                            <View style={styles.cameraFrozen}>
+                                <MaterialCommunityIcons name="qrcode-scan" size={56} color="rgba(249,115,22,0.5)" />
                             </View>
                         )}
+                        <View style={styles.scanFrame} pointerEvents="none" />
+                    </View>
 
-                        {scanResult.valido && scanResult.visitante && (
-                            <View style={styles.dataModule}>
-                                <DataRow
-                                    label="VISITANTE"
-                                    value={`${scanResult.visitante.nombre} ${scanResult.visitante.apellido}`}
-                                />
-                                <DataRow label="CI/CÉDULA" value={scanResult.visitante.cedula} mono />
-                                <DataRow label="PERSONAS" value={String(scanResult.visitante.num_personas)} />
-                                <DataRow label="DESTINO" value={scanResult.visitante.vivienda_destino} />
-                                <DataRow
-                                    label="VEHÍCULO"
-                                    value={
-                                        scanResult.visitante.tiene_vehiculo
-                                            ? `Sí (${scanResult.visitante.placa})`
-                                            : 'No'
-                                    }
-                                    last
-                                />
-                            </View>
-                        )}
-
-                        {scanResult.valido && qrId && (
-                            <View style={styles.qrActions}>
-                                <TouchableOpacity
-                                    style={styles.ingresoBtn}
-                                    onPress={() => handleAction('ingreso')}
-                                    disabled={procesando}
-                                >
-                                    <MaterialIcons name="login" size={18} color="#fff" />
-                                    <Text style={styles.actionBtnText}>Registrar Ingreso</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.salidaBtn}
-                                    onPress={() => handleAction('salida')}
-                                    disabled={procesando}
-                                >
-                                    <MaterialIcons name="logout" size={18} color="#fff" />
-                                    <Text style={styles.actionBtnText}>Registrar Salida</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.revocarBtn}
-                                    onPress={() => handleAction('revocar')}
-                                    disabled={procesando}
-                                >
-                                    <MaterialIcons name="block" size={18} color="#dc2626" />
-                                    <Text style={styles.revocarBtnText}>Revocar</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-
-                        {actionMsg && (
-                            <View
-                                style={
-                                    actionMsg.type === 'success' ? styles.actionMsgSuccess : styles.actionMsgError
-                                }
-                            >
-                                <Text
-                                    style={
-                                        actionMsg.type === 'success'
-                                            ? styles.actionMsgSuccessText
-                                            : styles.actionMsgErrorText
-                                    }
-                                >
-                                    {actionMsg.text}
-                                </Text>
-                            </View>
-                        )}
-
-                        <TouchableOpacity style={styles.rescanButton} onPress={resetScan}>
-                            <MaterialIcons name="qr_code_scanner" size={16} color="#191c1e" />
-                            <Text style={styles.rescanText}>Escanear otro código</Text>
+                    <View style={styles.waitingBlock}>
+                        <Text style={styles.waitingText}>
+                            {validando ? 'Validando código...' : 'Apunta la cámara al código QR'}
+                        </Text>
+                        <TouchableOpacity onPress={() => setShowManualModal(true)}>
+                            <Text style={styles.manualLink}>Ingresar código manualmente</Text>
                         </TouchableOpacity>
-                    </>
-                )}
-            </View>
-
-            <TouchableOpacity
-                style={styles.backLink}
-                onPress={() => navigation.navigate('GeneratePass')}
-            >
-                <MaterialIcons name="qr_code_2" size={16} color="#191c1e" />
-                <Text style={styles.backLinkText}>Ir a Generar Pase de Visita</Text>
-            </TouchableOpacity>
-
-            <Modal visible={showManualModal} transparent animationType="fade">
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modal}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Ingreso Manual de Código QR</Text>
-                            <TouchableOpacity onPress={() => setShowManualModal(false)}>
-                                <MaterialIcons name="close" size={20} color="#9ca3af" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <Text style={styles.formLabel}>Código del Visitante</Text>
-                        <TextInput
-                            style={styles.formInput}
-                            value={manualCode}
-                            onChangeText={setManualCode}
-                            autoCapitalize="none"
-                        />
-
-                        <View style={styles.formActions}>
-                            <TouchableOpacity
-                                style={styles.cancelButton}
-                                onPress={() => setShowManualModal(false)}
-                            >
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.modalSubmitButton}
-                                onPress={handleManualSubmit}
-                                disabled={validando}
-                            >
-                                <Text style={styles.modalSubmitButtonText}>
-                                    {validando ? 'Validando...' : 'Validar Código'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
                     </View>
                 </View>
-            </Modal>
-        </ScrollView>
+
+                <View style={styles.card}>
+                    {!scanResult ? (
+                        <Text style={styles.waitingText}>Aún no se ha validado ningún código.</Text>
+                    ) : (
+                        <>
+                            <Text style={styles.cardTitle}>Resultado de Validación</Text>
+
+                            {scanResult.valido ? (
+                                <View style={styles.statusBlock}>
+                                    <View style={[styles.statusIconWrap, styles.statusIconValid]}>
+                                        <MaterialIcons name="check-circle" size={40} color="#16a34a" />
+                                    </View>
+                                    <Text style={[styles.statusHeading, styles.statusHeadingValid]}>VÁLIDO</Text>
+                                    <Text style={[styles.statusSub, styles.statusSubValid]}>ACCESO PERMITIDO</Text>
+                                </View>
+                            ) : (
+                                <View style={styles.statusBlock}>
+                                    <View style={[styles.statusIconWrap, styles.statusIconInvalid]}>
+                                        <MaterialIcons name="cancel" size={40} color="#dc2626" />
+                                    </View>
+                                    <Text style={[styles.statusHeading, styles.statusHeadingInvalid]}>NO VÁLIDO</Text>
+                                    <Text style={[styles.statusSub, styles.statusSubInvalid]}>
+                                        {scanResult.motivo || 'ACCESO DENEGADO'}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {scanResult.valido && scanResult.visitante && (
+                                <View style={styles.dataModule}>
+                                    <DataRow
+                                        label="VISITANTE"
+                                        value={`${scanResult.visitante.nombre} ${scanResult.visitante.apellido}`}
+                                    />
+                                    <DataRow label="CI/CÉDULA" value={scanResult.visitante.cedula} mono />
+                                    <DataRow label="PERSONAS" value={String(scanResult.visitante.num_personas)} />
+                                    <DataRow label="DESTINO" value={scanResult.visitante.vivienda_destino} />
+                                    <DataRow
+                                        label="VEHÍCULO"
+                                        value={
+                                            scanResult.visitante.tiene_vehiculo
+                                                ? `Sí (${scanResult.visitante.placa})`
+                                                : 'No'
+                                        }
+                                        last
+                                    />
+                                </View>
+                            )}
+
+                            {scanResult.valido && qrId && (
+                                <View style={styles.qrActions}>
+                                    <TouchableOpacity
+                                        style={styles.ingresoBtn}
+                                        onPress={() => handleAction('ingreso')}
+                                        disabled={procesando}
+                                    >
+                                        <MaterialIcons name="login" size={18} color="#fff" />
+                                        <Text style={styles.actionBtnText}>Registrar Ingreso</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.salidaBtn}
+                                        onPress={() => handleAction('salida')}
+                                        disabled={procesando}
+                                    >
+                                        <MaterialIcons name="logout" size={18} color="#fff" />
+                                        <Text style={styles.actionBtnText}>Registrar Salida</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.revocarBtn}
+                                        onPress={() => handleAction('revocar')}
+                                        disabled={procesando}
+                                    >
+                                        <MaterialIcons name="block" size={18} color="#dc2626" />
+                                        <Text style={styles.revocarBtnText}>Revocar</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {actionMsg && (
+                                <View
+                                    style={
+                                        actionMsg.type === 'success' ? styles.actionMsgSuccess : styles.actionMsgError
+                                    }
+                                >
+                                    <Text
+                                        style={
+                                            actionMsg.type === 'success'
+                                                ? styles.actionMsgSuccessText
+                                                : styles.actionMsgErrorText
+                                        }
+                                    >
+                                        {actionMsg.text}
+                                    </Text>
+                                </View>
+                            )}
+
+                            <TouchableOpacity style={styles.rescanButton} onPress={resetScan}>
+                                <MaterialCommunityIcons name="qrcode-scan" size={16} color="#191c1e" />
+                                <Text style={styles.rescanText}>Escanear otro código</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+
+                <TouchableOpacity
+                    style={styles.backLink}
+                    onPress={() => navigation.navigate('GeneratePass')}
+                >
+                    <MaterialCommunityIcons name="qrcode" size={16} color="#191c1e" />
+                    <Text style={styles.backLinkText}>Ir a Generar Pase de Visita</Text>
+                </TouchableOpacity>
+
+                <Modal visible={showManualModal} transparent animationType="fade">
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modal}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>Ingreso Manual de Código QR</Text>
+                                <TouchableOpacity onPress={() => setShowManualModal(false)}>
+                                    <MaterialIcons name="close" size={20} color="#9ca3af" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <Text style={styles.formLabel}>Código del Visitante</Text>
+                            <TextInput
+                                style={styles.formInput}
+                                value={manualCode}
+                                onChangeText={setManualCode}
+                                autoCapitalize="none"
+                            />
+
+                            <View style={styles.formActions}>
+                                <TouchableOpacity
+                                    style={styles.cancelButton}
+                                    onPress={() => setShowManualModal(false)}
+                                >
+                                    <Text style={styles.cancelButtonText}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.modalSubmitButton}
+                                    onPress={handleManualSubmit}
+                                    disabled={validando}
+                                >
+                                    <Text style={styles.modalSubmitButtonText}>
+                                        {validando ? 'Validando...' : 'Validar Código'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 

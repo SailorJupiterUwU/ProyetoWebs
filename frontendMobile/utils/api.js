@@ -6,7 +6,7 @@ import { authEvents } from './authEvents';
  * Instancia centralizada de Axios con interceptores
  */
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api',
+  baseURL: 'http://192.168.100.149:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
