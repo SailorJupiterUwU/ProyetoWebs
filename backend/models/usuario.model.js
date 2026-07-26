@@ -7,7 +7,7 @@ const Usuario = sequelize.define(
         id_usuario: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: trues
+            autoIncrement: true
         },
         id_persona: {
             type: DataTypes.INTEGER,
@@ -52,10 +52,7 @@ const Usuario = sequelize.define(
         },
         fecha_decision: {
             type: DataTypes.DATEONLY,
-            allowNull: false,
-            validate: {
-                notNull: { msg: "La fecha de decisión es requerida" }
-            }
+            allowNull: true
         },
         fecha_registro: {
             type: DataTypes.DATEONLY,
