@@ -162,7 +162,7 @@ module.exports.registro = async (req, res) => {
         }
 
         // ID de rol por defecto si la tabla roles aún no tiene registros (ej: 2)
-        let idRolAsignado = 2;
+        let idRolAsignado = 3;
         if (rolResidente) {
             idRolAsignado = rolResidente.id_rol;
         }
