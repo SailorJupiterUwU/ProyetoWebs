@@ -3,7 +3,9 @@ const cors = require("cors");
 const env = require("./config/env");
 const sequelize = require("./config/sequelize.config");
 
-// Importación directa de modelos y sus relaciones
+const PORT = env.port || 3000;
+
+// MODELOS
 require("./models/persona.model");
 require("./models/rol.model");
 require("./models/modulo.model");
@@ -31,31 +33,85 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas de la aplicación
-app.use("/api/auth", require("./routes/auth.routes"));
-app.use("/api/usuarios", require("./routes/usuario.routes"));
-app.use("/api/viviendas", require("./routes/vivienda.routes"));
-app.use("/api/casas", require("./routes/vivienda.routes"));
-app.use("/api/modulos", require("./routes/modulo.routes"));
-app.use("/api/presupuestos", require("./routes/presupuesto.routes"));
-app.use("/api/rubros", require("./routes/rubro.routes"));
-app.use("/api/alicuotas", require("./routes/alicuota.routes"));
-app.use("/api/multas", require("./routes/multa.routes"));
-app.use("/api/ingresos", require("./routes/ingreso.routes"));
-app.use("/api/proveedores", require("./routes/proveedor.routes"));
-app.use("/api/egresos", require("./routes/egreso.routes"));
-app.use("/api/reportes", require("./routes/reporte.routes"));
-app.use("/api/dashboard", require("./routes/dashboard.routes"));
-app.use("/api/visitantes", require("./routes/visitante.routes"));
-app.use("/api/qr", require("./routes/qr.routes"));
-app.use("/api/auditoria", require("./routes/auditoria.routes"));
-app.use("/api/historial", require("./routes/historial.routes"));
-app.use("/api/roles", require("./routes/rol.routes"));
+// RUTAS
+
+// AUTHENTICACION
+const allAuthRoutes = require("./routes/auth.routes");
+app.use("/api/auth", allAuthRoutes);
+
+// USUARIOS
+const allUsuariosRoutes = require("./routes/usuario.routes");
+app.use("/api/usuarios", allUsuariosRoutes);
+
+// VIVIENDAS / CASAS
+const allViviendasRoutes = require("./routes/vivienda.routes");
+app.use("/api/viviendas", allViviendasRoutes);
+app.use("/api/casas", allViviendasRoutes);
+
+// MODULOS
+const allModulosRoutes = require("./routes/modulo.routes");
+app.use("/api/modulos", allModulosRoutes);
+
+// PRESUPUESTOS
+const allPresupuestosRoutes = require("./routes/presupuesto.routes");
+app.use("/api/presupuestos", allPresupuestosRoutes);
+
+// RUBROS
+const allRubrosRoutes = require("./routes/rubro.routes");
+app.use("/api/rubros", allRubrosRoutes);
+
+// ALICUOTAS
+const allAlicuotasRoutes = require("./routes/alicuota.routes");
+app.use("/api/alicuotas", allAlicuotasRoutes);
+
+// MULTAS
+const allMultasRoutes = require("./routes/multa.routes");
+app.use("/api/multas", allMultasRoutes);
+
+// INGRESOS
+const allIngresosRoutes = require("./routes/ingreso.routes");
+app.use("/api/ingresos", allIngresosRoutes);
+
+// PROVEEDORES
+const allProveedoresRoutes = require("./routes/proveedor.routes");
+app.use("/api/proveedores", allProveedoresRoutes);
+
+// EGRESOS
+const allEgresosRoutes = require("./routes/egreso.routes");
+app.use("/api/egresos", allEgresosRoutes);
+
+// REPORTES
+const allReportesRoutes = require("./routes/reporte.routes");
+app.use("/api/reportes", allReportesRoutes);
+
+// DASHBOARD
+const allDashboardRoutes = require("./routes/dashboard.routes");
+app.use("/api/dashboard", allDashboardRoutes);
+
+// VISITANTES
+const allVisitantesRoutes = require("./routes/visitante.routes");
+app.use("/api/visitantes", allVisitantesRoutes);
+
+// QR
+const allQrRoutes = require("./routes/qr.routes");
+app.use("/api/qr", allQrRoutes);
+
+// AUDITORIA
+const allAuditoriaRoutes = require("./routes/auditoria.routes");
+app.use("/api/auditoria", allAuditoriaRoutes);
+
+// HISTORIAL
+const allHistorialRoutes = require("./routes/historial.routes");
+app.use("/api/historial", allHistorialRoutes);
+
+// ROLES
+const allRolesRoutes = require("./routes/rol.routes");
+app.use("/api/roles", allRolesRoutes);
 
 const runSeeders = require("./seed/seeder");
 
-const PORT = env.port || 3000;
 
+// Conecta a la base y levanta el servidor
 sequelize.sync().then(async () => {
     console.log("Base de datos conectada correctamente.");
     await runSeeders();
@@ -65,3 +121,4 @@ sequelize.sync().then(async () => {
 }).catch((err) => {
     console.error("Error al conectar con la base de datos:", err);
 });
+
