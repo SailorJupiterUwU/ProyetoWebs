@@ -31,10 +31,10 @@ const ProfileScreen = () => {
                         <MaterialIcons name="account-circle" size={72} color="#f97316" />
                     </View>
                     <Text style={styles.name}>
-                        {user?.nombre} {user?.apellido}
+                        {user?.nombres} {user?.apellidos}
                     </Text>
                     {userRole ? <Text style={styles.role}>{userRole}</Text> : null}
-                    {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
+                    {user?.correo ? <Text style={styles.email}>{user.correo}</Text> : null}
                 </View>
 
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
