@@ -52,10 +52,13 @@ app.use("/api/auditoria", require("./routes/auditoria.routes"));
 app.use("/api/historial", require("./routes/historial.routes"));
 app.use("/api/roles", require("./routes/rol.routes"));
 
+const runSeeders = require("./seed/seeder");
+
 const PORT = env.port || 3000;
 
-sequelize.sync().then(() => {
+sequelize.sync().then(async () => {
     console.log("Base de datos conectada correctamente.");
+    await runSeeders();
     app.listen(PORT, () => {
         console.log(`Servidor escuchando en el puerto ${PORT}`);
     });

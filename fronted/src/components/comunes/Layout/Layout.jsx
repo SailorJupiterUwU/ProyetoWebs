@@ -5,14 +5,14 @@ import { useAuthContext } from '../../../context/AuthContext';
 import styles from './Layout.module.css';
 
 const NAV_ITEMS = [
-  { to: '/', icon: 'dashboard', label: 'Dashboard', modulo: 'Dashboard', roles: ['Directiva', 'Admin', 'Presidenta'] },
-  { to: '/usuarios', icon: 'group', label: 'Usuarios', modulo: 'Usuarios', roles: ['Directiva', 'Admin', 'Presidenta'] },
-  { to: '/roles', icon: 'shield_person', label: 'Roles', modulo: 'Roles', roles: ['Directiva', 'Admin', 'Presidenta'] },
-  { to: '/presupuesto', icon: 'account_balance_wallet', label: 'Presupuestos', modulo: 'Presupuestos', roles: ['Directiva', 'Admin', 'Presidenta'] },
-  { to: '/ingresos', icon: 'receipt_long', label: 'Ingresos', modulo: 'Ingresos', roles: ['Directiva', 'Residente', 'Admin', 'Presidenta'] },
-  { to: '/egresos', icon: 'trending_down', label: 'Egresos', modulo: 'Egresos', roles: ['Directiva', 'Admin', 'Presidenta'] },
-  { to: '/seguridad/generar', icon: 'qr_code_2', label: 'Control QR', modulo: 'Control QR', roles: ['Directiva', 'Residente', 'Guardia', 'Admin', 'Presidenta'] },
-  { to: '/auditoria', icon: 'change_history', label: 'Auditoría', modulo: 'Auditoria', roles: ['Directiva', 'Admin', 'Presidenta'] },
+  { to: '/', icon: 'dashboard', label: 'Dashboard', modulo: 'Dashboard', roles: ['Presidenta', 'Tesorera'] },
+  { to: '/usuarios', icon: 'group', label: 'Usuarios', modulo: 'Usuarios', roles: ['Presidenta'] },
+  { to: '/roles', icon: 'shield_person', label: 'Roles', modulo: 'Roles', roles: ['Presidenta'] },
+  { to: '/presupuesto', icon: 'account_balance_wallet', label: 'Presupuestos', modulo: 'Presupuestos', roles: ['Presidenta', 'Tesorera'] },
+  { to: '/ingresos', icon: 'receipt_long', label: 'Ingresos', modulo: 'Ingresos', roles: ['Presidenta', 'Tesorera', 'Residente'] },
+  { to: '/egresos', icon: 'trending_down', label: 'Egresos', modulo: 'Egresos', roles: ['Presidenta', 'Tesorera'] },
+  { to: '/seguridad/generar', icon: 'qr_code_2', label: 'Control QR', modulo: 'Control QR', roles: ['Presidenta', 'Tesorera', 'Residente', 'Guardia'] },
+  { to: '/auditoria', icon: 'change_history', label: 'Auditoría', modulo: 'Auditoria', roles: ['Presidenta', 'Tesorera'] },
 ];
 
 const Layout = ({ children }) => {
