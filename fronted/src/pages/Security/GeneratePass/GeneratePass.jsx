@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import useVisitantes from '../../../hooks/useVisitantes';
 import useViviendas from '../../../hooks/useViviendas';
 import Layout from '../../../components/comunes/Layout/Layout';
@@ -251,11 +252,7 @@ const GeneratePass = () => {
                         ) : (
                             <>
                                 <div className={styles.qrWrapper}>
-                                    <img
-                                        alt="Código QR"
-                                        className={styles.qrImage}
-                                        src={lastGenerated.codigo_qr}
-                                    />
+                                    <QRCodeSVG value={lastGenerated.codigo_qr} size={192} className={styles.qrImage} />
                                 </div>
 
                                 <div className={styles.detailsBox}>
