@@ -102,17 +102,17 @@ const Houses = () => {
                         <div className={styles.tableWrapper}>
                             <table className={styles.table}>
                                 <colgroup>
-                                    <col style={{ width: '35%' }} />
-                                    <col style={{ width: '20%' }} />
-                                    <col style={{ width: '20%' }} />
+                                    <col style={{ width: '30%' }} />
                                     <col style={{ width: '25%' }} />
+                                    <col style={{ width: '25%' }} />
+                                    <col style={{ width: '20%' }} />
                                 </colgroup>
                                 <thead>
                                     <tr className={styles.theadRow}>
                                         <th className={styles.th}>Nº Casa</th>
-                                        <th className={`${styles.th} ${styles.thRight}`}>% Alícuota</th>
-                                        <th className={styles.th}>Estado</th>
-                                        <th className={`${styles.th} ${styles.thRight}`}>Acciones</th>
+                                        <th className={`${styles.th} ${styles.thCenter}`}>% Alícuota</th>
+                                        <th className={`${styles.th} ${styles.thCenter}`}>Estado</th>
+                                        <th className={`${styles.th} ${styles.thCenter}`}>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className={styles.tbody}>
@@ -126,8 +126,8 @@ const Houses = () => {
                                         viviendas.map((v, idx) => (
                                             <tr key={v.id_vivienda} className={`${styles.row} ${idx % 2 === 1 ? styles.rowAlt : ''}`}>
                                                 <td className={styles.numeroCell}>Casa {v.numero}</td>
-                                                <td className={styles.textRight}>{(Number(v.porcentaje_alicuota) * 100).toFixed(2)}%</td>
-                                                <td>
+                                                <td className={styles.textCenter}>{(Number(v.porcentaje_alicuota) * 100).toFixed(2)}%</td>
+                                                <td className={styles.textCenter}>
                                                     <span className={`${styles.statusBadge} ${v.estado ? styles.statusActive : styles.statusInactive}`}>
                                                         {v.estado ? 'Activa' : 'Inactiva'}
                                                     </span>

@@ -48,11 +48,14 @@
     overflow-x: auto;
 }
 
-.table {
-    width: 100%;
-    text-align: left;
-    border-collapse: collapse;
-    min-width: 600px;
+.thCenter { text-align: center; }
+.textCenter { text-align: center; }
+
+.actionsCell {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* antes: flex-end */
+  gap: 0.5rem;
 }
 
 .theadRow {
