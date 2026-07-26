@@ -66,22 +66,14 @@ const useIngresos = () => {
     fetchResumenYDistribucion();
   }, [fetchIngresos, fetchResumenYDistribucion]);
 
-  const crearIngreso = async ({ id_vivienda, id_alicuota, id_multa, descripcion, comprobante }) => {
+  const crearIngreso = async ({ id_vivienda, id_alicuota, id_multa, descripcion }) => {
     try {
-      let payload;
-      let headers = {};
-      if (comprobante) {
-        payload = new FormData();
-        payload.append('id_vivienda', id_vivienda);
-        if (id_alicuota) payload.append('id_alicuota', id_alicuota);
-        if (id_multa) payload.append('id_multa', id_multa);
-        payload.append('descripcion', descripcion);
-        payload.append('comprobante', comprobante);
-        headers = { 'Content-Type': 'multipart/form-data' };
-      } else {
-        payload = { id_vivienda, id_alicuota, id_multa, descripcion };
-      }
-      const { data: res } = await api.post(ENDPOINTS.INGRESOS.CREAR, payload, { headers });
+      const { data: res } = await api.post(ENDPOINTS.INGRESOS.CREAR, {
+        id_vivienda,
+        id_alicuota,
+        id_multa,
+        descripcion,
+      });
       await fetchIngresos();
       await fetchResumenYDistribucion();
       return { success: true, id: res.id_ingreso };

@@ -16,9 +16,9 @@ const Houses = () => {
     const [formError, setFormError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const sumaAlicuotasActual = viviendas.reduce((acc, v) => acc + Number(v.porcentaje_alicuota), 0);
+    const sumaAlicuotasActual = viviendas.reduce((acc, v) => acc + Number(v.porcentaje_alicuota) * 100, 0);
     const sumaExcluyendoEditada = editingId
-        ? sumaAlicuotasActual - Number(viviendas.find((v) => v.id_vivienda === editingId)?.porcentaje_alicuota || 0)
+        ? sumaAlicuotasActual - Number(viviendas.find((v) => v.id_vivienda === editingId)?.porcentaje_alicuota || 0) * 100
         : sumaAlicuotasActual;
 
     const openCreateModal = () => {
@@ -32,7 +32,7 @@ const Houses = () => {
     const openEditModal = (v) => {
         setEditingId(v.id_vivienda);
         setNumero(v.numero);
-        setPorcentaje(String(v.porcentaje_alicuota));
+        setPorcentaje(String(Number(v.porcentaje_alicuota) * 100));
         setFormError(null);
         setShowModal(true);
     };
@@ -42,16 +42,18 @@ const Houses = () => {
         setFormError(null);
         setSubmitting(true);
 
+        const porcentajeFraccion = parseFloat(porcentaje) / 100; // porcentaje visual → fracción
+
         let result;
         if (editingId) {
             result = await editarVivienda(editingId, {
                 numero,
-                porcentaje_alicuota: parseFloat(porcentaje),
+                porcentaje_alicuota: porcentajeFraccion,
             });
         } else {
             result = await crearVivienda({
                 numero,
-                porcentaje_alicuota: parseFloat(porcentaje),
+                porcentaje_alicuota: porcentajeFraccion,
             });
         }
 
@@ -99,6 +101,12 @@ const Houses = () => {
                     <div className={styles.tableCard}>
                         <div className={styles.tableWrapper}>
                             <table className={styles.table}>
+                                <colgroup>
+                                    <col style={{ width: '35%' }} />
+                                    <col style={{ width: '20%' }} />
+                                    <col style={{ width: '20%' }} />
+                                    <col style={{ width: '25%' }} />
+                                </colgroup>
                                 <thead>
                                     <tr className={styles.theadRow}>
                                         <th className={styles.th}>Nº Casa</th>
@@ -118,7 +126,7 @@ const Houses = () => {
                                         viviendas.map((v, idx) => (
                                             <tr key={v.id_vivienda} className={`${styles.row} ${idx % 2 === 1 ? styles.rowAlt : ''}`}>
                                                 <td className={styles.numeroCell}>Casa {v.numero}</td>
-                                                <td className={styles.textRight}>{Number(v.porcentaje_alicuota).toFixed(2)}%</td>
+                                                <td className={styles.textRight}>{(Number(v.porcentaje_alicuota) * 100).toFixed(2)}%</td>
                                                 <td>
                                                     <span className={`${styles.statusBadge} ${v.estado ? styles.statusActive : styles.statusInactive}`}>
                                                         {v.estado ? 'Activa' : 'Inactiva'}

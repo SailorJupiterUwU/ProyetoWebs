@@ -289,3 +289,11 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  min-width: 600px;
+  table-layout: fixed;
+}
