@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeCanvas } from 'qrcode.react';
 import useVisitantes from '../../../hooks/useVisitantes';
 import useViviendas from '../../../hooks/useViviendas';
 import Layout from '../../../components/comunes/Layout/Layout';
@@ -21,6 +22,7 @@ const GeneratePass = () => {
     const [validoHasta, setValidoHasta] = useState('');
     const [tieneVehiculo, setTieneVehiculo] = useState(false);
     const [placa, setPlaca] = useState('');
+    const qrCanvasRef = useRef(null);
 
     const [submitting, setSubmitting] = useState(false);
     const [formError, setFormError] = useState(null);
@@ -67,12 +69,48 @@ const GeneratePass = () => {
         }
     };
 
-    const handleShareWhatsApp = () => {
+    const handleShareWhatsApp = async () => {
         if (!lastGenerated) return;
-        const text = encodeURIComponent(
-            `Pase de Visita CondoSecure para ${lastGenerated.nombre} ${lastGenerated.apellido}.\nCI: ${lastGenerated.cedula}\nVálido: ${lastGenerated.validoDesde} - ${lastGenerated.validoHasta}`
-        );
-        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+
+        const text = `Pase de Visita CondoSecure para ${lastGenerated.nombre} ${lastGenerated.apellido}.\nCI: ${lastGenerated.cedula}\nVálido: ${lastGenerated.validoDesde} - ${lastGenerated.validoHasta}`;
+
+        // Intentar obtener el canvas del QR y convertirlo a imagen
+        const canvas = qrCanvasRef.current;
+        let file = null;
+
+        if (canvas) {
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+            if (blob) {
+                file = new File([blob], 'pase-qr.png', { type: 'image/png' });
+            }
+        }
+
+        // Web Share API con archivo (funciona en móviles y algunos navegadores de escritorio compatibles)
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'Pase de Visita CondoSecure',
+                    text,
+                });
+                return;
+            } catch (err) {
+                // El usuario canceló el share o falló — seguimos al fallback
+                if (err.name === 'AbortError') return;
+            }
+        }
+
+        // Fallback: el navegador no soporta compartir archivos (ej. Chrome/Edge de escritorio)
+        // Descargamos la imagen automáticamente y abrimos WhatsApp Web solo con el texto,
+        // para que el usuario adjunte la imagen manualmente.
+        if (canvas) {
+            const link = document.createElement('a');
+            link.download = 'pase-qr.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     };
 
     const viviendaSeleccionadaLabel = (id) => {
@@ -251,10 +289,11 @@ const GeneratePass = () => {
                         ) : (
                             <>
                                 <div className={styles.qrWrapper}>
-                                    <img
-                                        alt="Código QR"
+                                    <QRCodeCanvas
+                                        value={lastGenerated.codigo_qr}
+                                        size={192}
                                         className={styles.qrImage}
-                                        src={lastGenerated.codigo_qr}
+                                        ref={qrCanvasRef}
                                     />
                                 </div>
 

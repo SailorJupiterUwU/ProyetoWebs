@@ -11,8 +11,8 @@ const JWT = require("jsonwebtoken");
 const { JWT_SECRET, JWT_EXPIRES_IN, JWT_RESET_EXPIRES_IN } = require("../config/jwt.config");
 
 // Función auxiliar para generar el Token JWT
-const generateToken = (id_usuario, id_rol) => {
-    return JWT.sign({ id_usuario, id_rol }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+const generateToken = (id_usuario, id_rol, rolNombre) => {
+    return JWT.sign({ id_usuario, id_rol, rol: rolNombre }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
 // ==========================================
@@ -99,7 +99,7 @@ module.exports.login = async (req, res) => {
         }
 
         // Generar token JWT
-        const token = generateToken(usuarioEncontrado.id_usuario, usuarioEncontrado.id_rol);
+        const token = generateToken(usuarioEncontrado.id_usuario, usuarioEncontrado.id_rol, nombreRol);
 
         return res.status(200).json({
             token: token,

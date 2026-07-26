@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../utils/api';
 import { ENDPOINTS } from '../utils/endpoints';
 import { handleApiError } from '../utils/helpers';
@@ -7,19 +7,19 @@ const useQr = () => {
   const [validando, setValidando] = useState(false);
   const [procesando, setProcesando] = useState(false);
 
-  const validar = async (codigo) => {
+  const validar = useCallback(async (codigo) => {
     setValidando(true);
     try {
       const { data } = await api.post(ENDPOINTS.QR.VALIDAR, { codigo });
-      return data; // { valido, visitante? } | { valido: false, motivo }
+      return data;
     } catch (err) {
       return { valido: false, motivo: 'ERROR', error: handleApiError(err) };
     } finally {
       setValidando(false);
     }
-  };
+  }, []);
 
-  const registrarIngreso = async (id) => {
+  const registrarIngreso = useCallback(async (id) => {
     setProcesando(true);
     try {
       await api.patch(ENDPOINTS.QR.INGRESO(id));
@@ -29,9 +29,9 @@ const useQr = () => {
     } finally {
       setProcesando(false);
     }
-  };
+  }, []);
 
-  const registrarSalida = async (id) => {
+  const registrarSalida = useCallback(async (id) => {
     setProcesando(true);
     try {
       await api.patch(ENDPOINTS.QR.SALIDA(id));
@@ -41,9 +41,9 @@ const useQr = () => {
     } finally {
       setProcesando(false);
     }
-  };
+  }, []);
 
-  const revocar = async (id) => {
+  const revocar = useCallback(async (id) => {
     setProcesando(true);
     try {
       await api.patch(ENDPOINTS.QR.REVOCAR(id));
@@ -53,7 +53,7 @@ const useQr = () => {
     } finally {
       setProcesando(false);
     }
-  };
+  }, []);
 
   return { validar, registrarIngreso, registrarSalida, revocar, validando, procesando };
 };

@@ -332,3 +332,90 @@
   font-size: 0.75rem;
   text-align: center;
 }
+
+.cameraRegion {
+  width: 320px;
+  max-width: 100%;
+  margin: 0 auto 1.5rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.cameraPlaceholder {
+  width: 320px;
+  max-width: 100%;
+  height: 320px;
+  margin: 0 auto 1.5rem;
+  background: #2d3133;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scanIcon {
+  color: rgba(249,115,22,0.5);
+  font-size: 72px;
+}
+
+.cameraErrorText {
+  text-align: center;
+  color: #dc2626;
+  font-size: 0.8125rem;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+}
+
+.startCameraButton,
+.stopCameraButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  margin: 0 auto 0.75rem;
+  transition: background 0.2s;
+}
+
+.startCameraButton {
+  background: #f97316;
+  color: white;
+}
+.startCameraButton:hover {
+  background: #9d4300;
+}
+
+.stopCameraButton {
+  background: #f3f4f6;
+  color: #374151;
+}
+.stopCameraButton:hover {
+  background: #e5e7eb;
+}
+
+.scanAnotherButton {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem;
+  width: 100%;
+  background: #f2f4f6;
+  color: #191c1e;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.scanAnotherButton:hover {
+  background: #e0e3e5;
+}

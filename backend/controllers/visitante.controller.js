@@ -60,7 +60,7 @@ module.exports.listar = async (req, res) => {
     try {
         const visitantesBDD = await Visitante.findAll({
             include: [
-                { model: Vivienda },
+                { model: Vivienda, as: "viviendaDestino" },
                 { model: CodigoQR }
             ],
             order: [["id_visitante", "DESC"]]
@@ -73,7 +73,7 @@ module.exports.listar = async (req, res) => {
                 id_visitante: v.id_visitante,
                 nombre: v.nombre,
                 apellido: v.apellido,
-                numero_vivienda: v.vivienda ? v.vivienda.numero : "N/A",
+                numero_vivienda: v.viviendaDestino ? v.viviendaDestino.numero : "N/A", // antes: v.vivienda
                 valido_desde: v.codigo_qr ? v.codigo_qr.valido_desde : null,
                 valido_hasta: v.codigo_qr ? v.codigo_qr.valido_hasta : null,
                 estado_qr: v.codigo_qr ? v.codigo_qr.estado : "PENDIENTE"
@@ -95,7 +95,7 @@ module.exports.detalle = async (req, res) => {
         const { id } = req.params;
 
         const visitante = await Visitante.findByPk(id, {
-            include: [{ model: Vivienda }, { model: CodigoQR }]
+            include: [{ model: Vivienda, as: "viviendaDestino" }, { model: CodigoQR }]
         });
 
         if (!visitante) {
@@ -110,7 +110,7 @@ module.exports.detalle = async (req, res) => {
             num_personas: visitante.num_personas,
             tiene_vehiculo: visitante.tiene_vehiculo,
             placa: visitante.placa,
-            vivienda_destino: visitante.vivienda ? visitante.vivienda.numero : "N/A",
+            vivienda_destino: visitante.viviendaDestino ? visitante.viviendaDestino.numero : "N/A", // antes: visitante.vivienda
             qr: visitante.codigo_qr
         });
     } catch (err) {
