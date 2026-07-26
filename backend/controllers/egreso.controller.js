@@ -3,6 +3,8 @@ const Egreso = require("../models/egreso.model");
 const Proveedor = require("../models/proveedor.model");
 const Rubro = require("../models/rubro.model");
 const Usuario = require("../models/usuario.model");
+const Modulo = require("../models/modulo.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. LISTAR EGRESOS (GET /egresos)
@@ -137,6 +139,15 @@ module.exports.crear = async (req, res) => {
             estado: "PENDIENTE"
         });
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Egresos" } });
+        await registrarAuditoria({
+            id_usuario: idUsuarioRegistra,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Egreso registrado",
+            ip_origen:  req.ip,
+            detalle:    `Egreso #${nuevoEgreso.id_egreso} | Factura: ${num_factura} | Valor: $${valor}`,
+        });
+
         return res.status(201).json({
             id_egreso: nuevoEgreso.id_egreso,
             msg: "Egreso registrado"
@@ -165,6 +176,15 @@ module.exports.editar = async (req, res) => {
         if (num_cheque !== undefined) egreso.num_cheque = num_cheque;
 
         await egreso.save();
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Egresos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Egreso #${id} actualizado`,
+            ip_origen:  req.ip,
+            detalle:    estado ? `Nuevo estado: ${estado}` : undefined,
+        });
 
         return res.status(200).json({ msg: "Egreso actualizado" });
     } catch (err) {

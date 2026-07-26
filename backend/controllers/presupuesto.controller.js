@@ -3,6 +3,8 @@ const Presupuesto = require("../models/presupuesto.model");
 const Rubro = require("../models/rubro.model");
 const PresupuestoRubro = require("../models/presupuestoRubro.model");
 const Egreso = require("../models/egreso.model");
+const Modulo = require("../models/modulo.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. LISTAR PRESUPUESTOS (GET /presupuestos)
@@ -104,6 +106,15 @@ module.exports.importarExcel = async (req, res) => {
             total: sumaTotalPresupuesto,
             archivo_excel: nombreArchivo,
             fecha_carga: new Date()
+        });
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Presupuesto ${anio} importado`,
+            ip_origen:  req.ip,
+            detalle:    `Archivo: ${nombreArchivo} | Rubros: ${rubrosCreadosCount} | Total: $${sumaTotalPresupuesto}`,
         });
 
         return res.status(201).json({
@@ -212,6 +223,15 @@ module.exports.agregarRubro = async (req, res) => {
         presupuesto.total = Number(nuevaSuma) || 0;
         await presupuesto.save();
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Rubro #${id_rubro} asignado al presupuesto #${id}`,
+            ip_origen:  req.ip,
+            detalle:    `Monto asignado: $${monto_asignado}`,
+        });
+
         return res.status(201).json({ msg: "Rubro asignado al presupuesto" });
     } catch (err) {
         console.error("Error en agregar rubro al presupuesto:", err);
@@ -249,6 +269,15 @@ module.exports.editarMontoRubro = async (req, res) => {
             presupuesto.total = Number(nuevaSuma);
             await presupuesto.save();
         }
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Monto del rubro #${idRubro} en presupuesto #${id} actualizado`,
+            ip_origen:  req.ip,
+            detalle:    `Nuevo monto: $${monto_asignado}`,
+        });
 
         return res.status(200).json({ msg: "Monto actualizado" });
     } catch (err) {

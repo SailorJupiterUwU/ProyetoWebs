@@ -1,6 +1,8 @@
 const CodigoQR = require("../models/codigoQr.model");
 const Visitante = require("../models/visitante.model");
 const Vivienda = require("../models/vivienda.model");
+const Modulo = require("../models/modulo.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. VALIDAR CÓDIGO QR (POST /qr/validar)
@@ -73,6 +75,15 @@ module.exports.registrarIngreso = async (req, res) => {
             await qr.visitante.save();
         }
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Control QR" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Ingreso al condominio registrado via QR #${id}`,
+            ip_origen:  req.ip,
+            detalle:    qr.visitante ? `Visitante: ${qr.visitante.nombre} ${qr.visitante.apellido}` : undefined,
+        });
+
         return res.status(200).json({ msg: "Ingreso registrado" });
     } catch (err) {
         console.error("Error en registrar ingreso QR:", err);
@@ -97,6 +108,15 @@ module.exports.registrarSalida = async (req, res) => {
             await qr.visitante.save();
         }
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Control QR" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Salida del condominio registrada via QR #${id}`,
+            ip_origen:  req.ip,
+            detalle:    qr.visitante ? `Visitante: ${qr.visitante.nombre} ${qr.visitante.apellido}` : undefined,
+        });
+
         return res.status(200).json({ msg: "Salida registrada" });
     } catch (err) {
         console.error("Error en registrar salida QR:", err);
@@ -118,6 +138,14 @@ module.exports.revocar = async (req, res) => {
 
         qr.estado = "REVOCADO";
         await qr.save();
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Control QR" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Código QR #${id} revocado`,
+            ip_origen:  req.ip,
+        });
 
         return res.status(200).json({ msg: "Código QR revocado" });
     } catch (err) {

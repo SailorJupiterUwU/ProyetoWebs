@@ -6,6 +6,8 @@ const Multa = require("../models/multa.model");
 const Rubro = require("../models/rubro.model");
 const Persona = require("../models/persona.model");
 const Usuario = require("../models/usuario.model");
+const Modulo = require("../models/modulo.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. LISTAR INGRESOS (GET /ingresos)
@@ -175,6 +177,15 @@ module.exports.crear = async (req, res) => {
         if (id_multa) {
             await Multa.update({ estado: "PAGADA" }, { where: { id_multa } });
         }
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Ingresos" } });
+        await registrarAuditoria({
+            id_usuario: idUsuarioRegistra,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Pago de alícuota registrado",
+            ip_origen:  req.ip,
+            detalle:    `Ingreso #${nuevoIngreso.id_ingreso} | Vivienda #${id_vivienda} | Total: $${totalPagadoNum > 0 ? totalPagadoNum : 50.00}`,
+        });
 
         return res.status(201).json({
             id_ingreso: nuevoIngreso.id_ingreso,

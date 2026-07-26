@@ -2,10 +2,12 @@ const { Op } = require("sequelize");
 const Usuario = require("../models/usuario.model");
 const Persona = require("../models/persona.model");
 const Rol = require("../models/rol.model");
+const Modulo = require("../models/modulo.model");
 const Vivienda = require("../models/vivienda.model");
 const Ingreso = require("../models/ingreso.model");
 const Egreso = require("../models/egreso.model");
 const bcrypt = require("bcryptjs");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. LISTAR USUARIOS (GET /usuarios)
@@ -150,6 +152,15 @@ module.exports.crear = async (req, res) => {
             estado: "ACTIVO"
         });
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Usuario creado por administrador",
+            ip_origen:  req.ip,
+            detalle:    `Correo: ${correo_login}`,
+        });
+
         return res.status(201).json({
             id_usuario: nuevoUsuario.id_usuario,
             msg: "Usuario creado"
@@ -182,6 +193,14 @@ module.exports.editar = async (req, res) => {
             await usuario.persona.save();
         }
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Datos del usuario #${id} editados`,
+            ip_origen:  req.ip,
+        });
+
         return res.status(200).json({ msg: "Usuario actualizado" });
     } catch (err) {
         console.error("Error en editar usuario:", err);
@@ -204,6 +223,14 @@ module.exports.cambiarEstado = async (req, res) => {
 
         usuario.estado = estado;
         await usuario.save();
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Estado del usuario #${id} cambiado a ${estado}`,
+            ip_origen:  req.ip,
+        });
 
         return res.status(200).json({ msg: "Estado actualizado" });
     } catch (err) {
@@ -309,6 +336,14 @@ module.exports.aprobarSolicitud = async (req, res) => {
         usuario.fecha_decision = new Date();
         await usuario.save();
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Solicitud de registro aprobada para usuario #${id}`,
+            ip_origen:  req.ip,
+        });
+
         return res.status(200).json({ msg: "Usuario aprobado" });
     } catch (err) {
         console.error("Error en aprobar solicitud:", err);
@@ -337,6 +372,15 @@ module.exports.rechazarSolicitud = async (req, res) => {
         usuario.motivo_rechazo = motivo_rechazo || "Solicitud no aprobada por la directiva";
         usuario.fecha_decision = new Date();
         await usuario.save();
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Solicitud de registro rechazada para usuario #${id}`,
+            ip_origen:  req.ip,
+            detalle:    `Motivo: ${motivo_rechazo || "No especificado"}`,
+        });
 
         return res.status(200).json({ msg: "Usuario rechazado" });
     } catch (err) {
