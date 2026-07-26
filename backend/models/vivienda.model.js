@@ -25,6 +25,11 @@ const Vivienda = sequelize.define(
                 min: { args: [0], msg: "El porcentaje no puede ser negativo" },
                 max: { args: [1], msg: "El porcentaje no puede ser mayor a 1 (100%)" }
             }
+        },
+        estado: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         }
     },
     {

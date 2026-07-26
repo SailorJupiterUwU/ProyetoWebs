@@ -1,180 +1,187 @@
 const Rol = require("../models/rol.model");
-const Usuario = require("../models/usuario.model");
-const { registrarAuditoria } = require("../utils/auditoria.util");
+const Modulo = require("../models/modulo.model");
+const RolModulo = require("../models/rolModulo.model");
 
-/**
- * Crear un nuevo rol con sus accesos (permisos por módulo)
- * `accesos` se espera como JSON, ej: { "usuarios": ["ver", "crear"], "finanzas": ["ver"] }
- */
-exports.crearRol = async (req, res) => {
+// ==========================================
+// 1. LISTAR ROLES (GET /roles)
+// ==========================================
+module.exports.listar = async (req, res) => {
     try {
-        const { nombre, accesos, estado } = req.body;
+        const rolesBDD = await Rol.findAll();
 
-        if (!nombre) {
-            return res.status(400).json({ mensaje: "El nombre del rol es requerido" });
+        let listaRoles = [];
+        for (let i = 0; i < rolesBDD.length; i++) {
+            let r = rolesBDD[i];
+            listaRoles.push({
+                id_rol: r.id_rol,
+                codigo: r.codigo,
+                nombre: r.nombre,
+                descripcion: r.descripcion,
+                estado: r.estado
+            });
         }
 
-        const rolExistente = await Rol.findOne({ where: { nombre } });
-        if (rolExistente) {
-            return res.status(409).json({ mensaje: `Ya existe un rol con el nombre "${nombre}"` });
+        return res.status(200).json({ data: listaRoles });
+    } catch (err) {
+        console.error("Error en listar roles:", err);
+        return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
+    }
+};
+
+// ==========================================
+// 2. CREAR ROL (POST /roles)
+// ==========================================
+module.exports.crear = async (req, res) => {
+    try {
+        const { codigo, nombre, descripcion } = req.body;
+
+        if (!codigo || !nombre) {
+            return res.status(400).json({ msg: "El código y nombre del rol son obligatorios" });
         }
 
         const nuevoRol = await Rol.create({
-            nombre,
-            accesos: accesos || {},
-            estado: estado !== undefined ? estado : true
+            codigo: codigo,
+            nombre: nombre,
+            descripcion: descripcion || "",
+            estado: true
         });
 
-        await registrarAuditoria({
-            categoria: "Roles",
-            accion: "Registro de rol",
-            detalle: `Se creó el rol "${nuevoRol.nombre}"`,
-            ip_origen: req.ip,
-            id_usuario: req.usuario.id_usuario
+        return res.status(201).json({
+            id_rol: nuevoRol.id_rol,
+            msg: "Rol creado"
         });
-
-        return res.status(201).json({ mensaje: "Rol creado correctamente", rol: nuevoRol });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: "Error interno del servidor", error: error.message });
+    } catch (err) {
+        console.error("Error en crear rol:", err);
+        return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
     }
 };
 
-/**
- * Listar todos los roles
- */
-exports.listarRoles = async (req, res) => {
+// ==========================================
+// 3. EDITAR ROL (PUT /roles/:id)
+// ==========================================
+module.exports.editar = async (req, res) => {
     try {
-        const roles = await Rol.findAll({ order: [["nombre", "ASC"]] });
-        return res.status(200).json(roles);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: "Error interno del servidor", error: error.message });
-    }
-};
+        const { id } = req.params;
+        const { nombre, descripcion } = req.body;
 
-/**
- * Obtener un rol por id
- */
-exports.obtenerRol = async (req, res) => {
-    try {
-        const rol = await Rol.findByPk(req.params.id);
-        if (!rol) {
-            return res.status(404).json({ mensaje: "Rol no encontrado" });
+        if( !nombre || !descripcion){
+            res.status(400).json({msg: "El nombre y descripción son obligatorios"})
         }
-        return res.status(200).json(rol);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: "Error interno del servidor", error: error.message });
-    }
-};
-
-/**
- * Actualizar nombre o accesos de un rol
- */
-exports.actualizarRol = async (req, res) => {
-    try {
-        const rol = await Rol.findByPk(req.params.id);
+        const rol = await Rol.findByPk(id);
         if (!rol) {
-            return res.status(404).json({ mensaje: "Rol no encontrado" });
+            return res.status(404).json({ msg: "Rol no encontrado" });
         }
 
-        const { nombre, accesos } = req.body;
-
-        if (nombre && nombre !== rol.nombre) {
-            const duplicado = await Rol.findOne({ where: { nombre } });
-            if (duplicado) {
-                return res.status(409).json({ mensaje: `Ya existe un rol con el nombre "${nombre}"` });
-            }
+        if (nombre !== undefined) {
             rol.nombre = nombre;
         }
-
-        if (accesos !== undefined) {
-            rol.accesos = accesos;
+        if (descripcion !== undefined) {
+            rol.descripcion = descripcion;
         }
 
         await rol.save();
 
-        await registrarAuditoria({
-            categoria: "Roles",
-            accion: "Actualización de rol",
-            detalle: `Se actualizó el rol "${rol.nombre}"`,
-            ip_origen: req.ip,
-            id_usuario: req.usuario.id_usuario
-        });
-
-        return res.status(200).json({ mensaje: "Rol actualizado correctamente", rol });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: "Error interno del servidor", error: error.message });
+        return res.status(200).json({ msg: "Rol actualizado" });
+    } catch (err) {
+        console.error("Error en editar rol:", err);
+        return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
     }
 };
 
-/**
- * Activar/desactivar un rol (en vez de borrado físico, ya que puede
- * tener usuarios históricos asociados)
- */
-exports.cambiarEstadoRol = async (req, res) => {
+// ==========================================
+// 4. CAMBIAR ESTADO DE ROL (PATCH /roles/:id/estado)
+// ==========================================
+module.exports.cambiarEstado = async (req, res) => {
     try {
+        const { id } = req.params;
         const { estado } = req.body;
 
-        if (typeof estado !== "boolean") {
-            return res.status(400).json({ mensaje: "El estado debe ser true o false" });
-        }
-
-        const rol = await Rol.findByPk(req.params.id);
+        const rol = await Rol.findByPk(id);
         if (!rol) {
-            return res.status(404).json({ mensaje: "Rol no encontrado" });
+            return res.status(404).json({ msg: "Rol no encontrado" });
         }
 
         rol.estado = estado;
         await rol.save();
 
-        await registrarAuditoria({
-            categoria: "Roles",
-            accion: "Cambio de estado de rol",
-            detalle: `El rol "${rol.nombre}" pasó a estado ${estado ? "activo" : "inactivo"}`,
-            ip_origen: req.ip,
-            id_usuario: req.usuario.id_usuario
-        });
-
-        return res.status(200).json({ mensaje: "Estado del rol actualizado", rol });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: "Error interno del servidor", error: error.message });
+        return res.status(200).json({ msg: "Estado actualizado" });
+    } catch (err) {
+        console.error("Error en cambiar estado de rol:", err);
+        return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
     }
 };
 
-/**
- * Eliminar un rol (solo si no tiene usuarios asignados actualmente)
- */
-exports.eliminarRol = async (req, res) => {
+// ==========================================
+// 5. OBTENER MÓDULOS DE UN ROL (GET /roles/:id/modulos)
+// ==========================================
+module.exports.obtenerModulos = async (req, res) => {
     try {
-        const rol = await Rol.findByPk(req.params.id);
-        if (!rol) {
-            return res.status(404).json({ mensaje: "Rol no encontrado" });
+        const { id } = req.params;
+
+        // Obtener todos los módulos del sistema
+        const todosLosModulos = await Modulo.findAll();
+
+        // Obtener los IDs de módulos actualmente asignados a este rol
+        const asignaciones = await RolModulo.findAll({ where: { id_rol: id } });
+        
+        let idsAsignados = [];
+        for (let i = 0; i < asignaciones.length; i++) {
+            idsAsignados.push(asignaciones[i].id_modulo);
         }
 
-        const usuariosConEsteRol = await Usuario.count({ where: { id_rol: rol.id_rol } });
-        if (usuariosConEsteRol > 0) {
-            return res.status(409).json({
-                mensaje: "No se puede eliminar el rol porque hay usuarios asignados a él. Desactívalo en su lugar."
+        // Armar el listado indicando si cada módulo está asignado (true/false)
+        let modulos = [];
+        for (let j = 0; j < todosLosModulos.length; j++) {
+            let m = todosLosModulos[j];
+            let estaAsignado = false;
+
+            if (idsAsignados.includes(m.id_modulo)) {
+                estaAsignado = true;
+            }
+
+            modulos.push({
+                id_modulo: m.id_modulo,
+                nombre: m.nombre,
+                asignado: estaAsignado
             });
         }
 
-        await rol.destroy();
+        return res.status(200).json({ data: modulos });
+    } catch (err) {
+        console.error("Error en obtener módulos del rol:", err);
+        return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
+    }
+};
 
-        await registrarAuditoria({
-            categoria: "Roles",
-            accion: "Eliminación de rol",
-            detalle: `Se eliminó el rol "${rol.nombre}"`,
-            ip_origen: req.ip,
-            id_usuario: req.usuario.id_usuario
-        });
+// ==========================================
+// 6. ACTUALIZAR MÓDULOS ASIGNADOS A UN ROL (PUT /roles/:id/modulos)
+// ==========================================
+module.exports.actualizarModulos = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { modulos } = req.body; 
 
-        return res.status(200).json({ mensaje: "Rol eliminado correctamente" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: "Error interno del servidor", error: error.message });
+        const rol = await Rol.findByPk(id);
+        if (!rol) {
+            return res.status(404).json({ msg: "Rol no encontrado" });
+        }
+
+        // 1. Eliminar las asignaciones anteriores de este rol
+        await RolModulo.destroy({ where: { id_rol: id } });
+
+        // 2. Insertar las nuevas asignaciones
+        if (modulos && Array.isArray(modulos)) {
+            for (let i = 0; i < modulos.length; i++) {
+                await RolModulo.create({
+                    id_rol: id,
+                    id_modulo: modulos[i]
+                });
+            }
+        }
+
+        return res.status(200).json({ msg: "Permisos actualizados" });
+    } catch (err) {
+        console.error("Error en actualizar módulos del rol:", err);
+        return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
     }
 };
