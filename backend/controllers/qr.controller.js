@@ -15,7 +15,7 @@ module.exports.validar = async (req, res) => {
 
         const qr = await CodigoQR.findOne({
             where: { codigo: codigo },
-            include: [{ model: Visitante, include: [{ model: Vivienda }] }]
+            include: [{ model: Visitante, include: [{ model: Vivienda, as: "viviendaDestino" }] }]
         });
 
         if (!qr) {
@@ -42,7 +42,7 @@ module.exports.validar = async (req, res) => {
                 apellido: v ? v.apellido : "",
                 cedula: v ? v.cedula : "",
                 num_personas: v ? v.num_personas : 1,
-                vivienda_destino: v && v.vivienda ? v.vivienda.numero : "N/A",
+                vivienda_destino: v && v.viviendaDestino ? v.viviendaDestino.numero : "N/A", // antes: v.vivienda
                 tiene_vehiculo: v ? v.tiene_vehiculo : false,
                 placa: v ? v.placa : null
             }
