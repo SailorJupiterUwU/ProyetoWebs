@@ -39,19 +39,13 @@ const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const payload = new FormData();
-      payload.append('nombres', formData.nombres);
-      payload.append('apellidos', formData.apellidos);
-      payload.append('ci_ruc', formData.ci_ruc);
-      payload.append('numero_vivienda', formData.numero_vivienda);
-      payload.append('correo_login', formData.correo_login);
-      payload.append('password', formData.password);
-      if (formData.foto) {
-        payload.append('foto', formData.foto);
-      }
-
-      const { data } = await api.post(ENDPOINTS.AUTH.REGISTRO, payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const { data } = await api.post(ENDPOINTS.AUTH.REGISTRO, {
+        nombres: formData.nombres,
+        apellidos: formData.apellidos,
+        ci_ruc: formData.ci_ruc,
+        numero_vivienda: formData.numero_vivienda,
+        correo_login: formData.correo_login,
+        password: formData.password,
       });
       return { success: true, msg: data.msg };
     } catch (err) {
