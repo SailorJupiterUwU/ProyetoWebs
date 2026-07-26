@@ -117,7 +117,7 @@ const App = () => {
           />
 
           <Route
-            path="/casas"
+            path="/viviendas"
             element={
               
                 <Houses />

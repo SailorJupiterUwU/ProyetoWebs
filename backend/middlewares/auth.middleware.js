@@ -20,7 +20,7 @@ async function autenticacion(req, res, next) {
         // Verificamos que el usuario siga existiendo y activo,
         // por si fue desactivado después de emitir el token.
         const usuario = await Usuario.findByPk(payload.id_usuario);
-        if (!usuario || usuario.estado !== "Activo") {
+        if (!usuario || usuario.estado !== "ACTIVO") {
             return res.status(403).json({ mensaje: "Usuario inactivo. Contacte a la directiva." });
         }
 
