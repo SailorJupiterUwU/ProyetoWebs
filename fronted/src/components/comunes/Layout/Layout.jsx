@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/', icon: 'dashboard', label: 'Dashboard', modulo: 'Dashboard', roles: ['Presidenta', 'Tesorera'] },
   { to: '/usuarios', icon: 'group', label: 'Usuarios', modulo: 'Usuarios', roles: ['Presidenta'] },
   { to: '/roles', icon: 'shield_person', label: 'Roles', modulo: 'Roles', roles: ['Presidenta'] },
+  { to: '/viviendas', icon: 'home_work', label: 'Viviendas', modulo: 'Viviendas', roles: ['Directiva', 'Presidenta'] },
   { to: '/presupuesto', icon: 'account_balance_wallet', label: 'Presupuestos', modulo: 'Presupuestos', roles: ['Presidenta', 'Tesorera'] },
   { to: '/ingresos', icon: 'receipt_long', label: 'Ingresos', modulo: 'Ingresos', roles: ['Presidenta', 'Tesorera', 'Residente'] },
   { to: '/egresos', icon: 'trending_down', label: 'Egresos', modulo: 'Egresos', roles: ['Presidenta', 'Tesorera'] },
