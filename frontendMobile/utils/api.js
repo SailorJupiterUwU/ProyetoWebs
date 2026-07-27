@@ -3,10 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authEvents } from './authEvents';
 
 /**
- * Instancia centralizada de Axios con interceptores
+ * Instancia centralizada de Axios con interceptores.
+ * La URL base se toma de la variable de entorno EXPO_PUBLIC_API_URL
+ * (definida en .env), embebida en el bundle al momento del build.
  */
 const api = axios.create({
-  baseURL: 'http://192.168.100.149:3000/api',
+  baseURL: process.env.EXPO_PUBLIC_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -31,8 +33,6 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       await AsyncStorage.multiRemove(['authToken', 'userData']);
-      // En web se redirigía con window.location; en RN el AuthContext
-      // escucha este evento y limpia su estado / navega a Login.
       authEvents.emitUnauthorized();
     }
     return Promise.reject(error);

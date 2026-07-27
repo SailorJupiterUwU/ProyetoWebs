@@ -41,7 +41,9 @@ const usePresupuesto = (anioInicial = new Date().getFullYear()) => {
       setTotales({ monto_asignado: 0, gasto_ejecutado: 0, saldo_disponible: 0 });
       try {
         const lista = await fetchPresupuestos();
-        const encontrado = lista.find((p) => p.anio === targetAnio);
+        const encontrado = lista
+          .filter((p) => p.anio === targetAnio)
+          .sort((a, b) => new Date(b.fecha_carga) - new Date(a.fecha_carga))[0] || null;
         setPresupuestoActual(encontrado || null);
         if (encontrado) {
           await fetchRubrosDePresupuesto(encontrado.id_presupuesto);
