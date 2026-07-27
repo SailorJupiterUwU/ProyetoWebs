@@ -138,7 +138,7 @@ const App = () => {
               </PrivateRoute>
             }
           />
-          {/* Redirección por defecto */}
+          {/* Redirección por defecto*/}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
