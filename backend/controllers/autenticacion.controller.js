@@ -58,12 +58,7 @@ module.exports.login = async (req, res) => {
         const esPasswordValido = await bcrypt.compare(password, usuarioEncontrado.password_hash);
         if (!esPasswordValido) {
             const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-            await registrarAuditoria({
-                id_usuario: usuarioEncontrado.id_usuario,
-                id_modulo:  modulo?.id_modulo,
-                accion:     "Intento de inicio de sesión fallido (contraseña incorrecta)",
-                ip_origen:  req.ip,
-            });
+            await registrarAuditoria(usuarioEncontrado.id_usuario, modulo?.id_modulo, "Intento de inicio de sesión fallido (contraseña incorrecta)", req.ip);
             return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
         }
 
@@ -111,12 +106,7 @@ module.exports.login = async (req, res) => {
 
         // Registrar el inicio de sesión exitoso en la bitácora
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: usuarioEncontrado.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Inicio de sesión exitoso",
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(usuarioEncontrado.id_usuario, modulo?.id_modulo, "Inicio de sesión exitoso", req.ip);
 
         return res.status(200).json({
             token: token,
@@ -216,13 +206,7 @@ module.exports.registro = async (req, res) => {
 
         // Registrar el nuevo registro en la bitácora
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: nuevoUsuario.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Solicitud de registro enviada",
-            ip_origen:  req.ip,
-            detalle:    `Correo: ${correo_login} | Vivienda: ${numero_vivienda}`,
-        });
+        await registrarAuditoria(nuevoUsuario.id_usuario, modulo?.id_modulo, "Solicitud de registro enviada", req.ip, `Correo: ${correo_login} | Vivienda: ${numero_vivienda}`);
 
         return res.status(201).json({ msg: "Solicitud enviada, en espera de aprobación" });
     } catch (err) {
@@ -264,6 +248,8 @@ module.exports.recuperarPassword = async (req, res) => {
                 where: { id_usuario: usuarioEncontrado.id_usuario, usado: false },
                 order: [["fecha_generacion", "DESC"]],
             });
+            const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+            await registrarAuditoria(usuarioEncontrado.id_usuario, modulo?.id_modulo, "Solicitud de recuperación de contraseña", req.ip);
             return res.status(200).json({
                 msg: "Token de recuperación generado",
                 token: ultimoToken?.token,
@@ -311,12 +297,7 @@ module.exports.resetPassword = async (req, res) => {
 
         // Registrar el restablecimiento de contraseña en la bitácora
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: registroToken.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Contraseña restablecida mediante token de recuperación",
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(registroToken.id_usuario, modulo?.id_modulo, "Contraseña restablecida mediante token de recuperación", req.ip);
 
         return res.status(200).json({ msg: "Contraseña actualizada" });
     } catch (err) {
@@ -331,12 +312,7 @@ module.exports.logout = async (req, res) => {
     try {
         // req.usuario viene del middleware de autenticación (JWT decodificado)
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Cierre de sesión",
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, "Cierre de sesión", req.ip);
 
         return res.status(200).json({ msg: "Sesión cerrada" });
     } catch (err) {

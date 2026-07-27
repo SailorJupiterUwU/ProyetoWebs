@@ -140,13 +140,7 @@ module.exports.crear = async (req, res) => {
         });
 
         const modulo = await Modulo.findOne({ where: { nombre: "Egresos" } });
-        await registrarAuditoria({
-            id_usuario: idUsuarioRegistra,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Egreso registrado",
-            ip_origen:  req.ip,
-            detalle:    `Egreso #${nuevoEgreso.id_egreso} | Factura: ${num_factura} | Valor: $${valor}`,
-        });
+        await registrarAuditoria(idUsuarioRegistra, modulo?.id_modulo, "Egreso registrado", req.ip, `Egreso #${nuevoEgreso.id_egreso} | Factura: ${num_factura} | Valor: $${valor}`);
 
         return res.status(201).json({
             id_egreso: nuevoEgreso.id_egreso,
@@ -178,13 +172,7 @@ module.exports.editar = async (req, res) => {
         await egreso.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Egresos" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Egreso #${id} actualizado`,
-            ip_origen:  req.ip,
-            detalle:    estado ? `Nuevo estado: ${estado}` : undefined,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Egreso #${id} actualizado`, req.ip, estado ? `Nuevo estado: ${estado}` : null);
 
         return res.status(200).json({ msg: "Egreso actualizado" });
     } catch (err) {

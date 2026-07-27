@@ -48,12 +48,7 @@ module.exports.crear = async (req, res) => {
         });
 
         const modulo = await Modulo.findOne({ where: { nombre: "Roles" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Rol creado: ${nombre}`,
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Rol creado: ${nombre}`, req.ip);
 
         return res.status(201).json({
             id_rol: nuevoRol.id_rol,
@@ -91,12 +86,7 @@ module.exports.editar = async (req, res) => {
         await rol.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Roles" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Rol #${id} editado`,
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Rol #${id} editado`, req.ip);
 
         return res.status(200).json({ msg: "Rol actualizado" });
     } catch (err) {
@@ -122,12 +112,7 @@ module.exports.cambiarEstado = async (req, res) => {
         await rol.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Roles" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Estado del rol #${id} cambiado a ${estado}`,
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Estado del rol #${id} cambiado a ${estado}`, req.ip);
 
         return res.status(200).json({ msg: "Estado actualizado" });
     } catch (err) {
@@ -205,13 +190,7 @@ module.exports.actualizarModulos = async (req, res) => {
         }
 
         const moduloBD = await Modulo.findOne({ where: { nombre: "Roles" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  moduloBD?.id_modulo,
-            accion:     `Permisos de módulos actualizados para rol #${id}`,
-            ip_origen:  req.ip,
-            detalle:    `Módulos asignados: [${modulos?.join(", ")}]`,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, moduloBD?.id_modulo, `Permisos de módulos actualizados para rol #${id}`, req.ip, `Módulos asignados: [${modulos?.join(", ")}]`);
 
         return res.status(200).json({ msg: "Permisos actualizados" });
     } catch (err) {
