@@ -25,7 +25,7 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) return <LoadingSpinner fullScreen />;
 
-  return isAuthenticated ? { children } : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 /**
