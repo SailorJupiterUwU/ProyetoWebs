@@ -25,7 +25,7 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) return <LoadingSpinner fullScreen />;
 
-  return isAuthenticated ? { children } : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 /**
@@ -45,83 +45,83 @@ const App = () => {
           <Route
             path="/"
             element={
-
-              <Dashboard />
-
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
             }
           />
           <Route
             path="/usuarios"
             element={
-
-              <Users />
-
+              <PrivateRoute>
+                <Users />
+              </PrivateRoute>
             }
           />
           <Route
             path="/presupuesto"
             element={
-
-              <Budgets />
-
+              <PrivateRoute>
+                <Budgets />
+              </PrivateRoute>
             }
           />
           <Route
             path="/egresos"
             element={
-
-              <Expenses />
-
+              <PrivateRoute>
+                <Expenses />
+              </PrivateRoute>
             }
           />
           <Route
             path="/ingresos"
             element={
-
-              <Income />
-
+              <PrivateRoute>
+                <Income />
+              </PrivateRoute>
             }
           />
           <Route
             path="/seguridad/generar"
             element={
-
-              <GeneratePass />
-
+              <PrivateRoute>
+                <GeneratePass />
+              </PrivateRoute>
             }
           />
           <Route
             path="/seguridad/escanear"
             element={
-
-              <Scanner />
-
+              <PrivateRoute>
+                <Scanner />
+              </PrivateRoute>
             }
           />
           <Route
             path="/auditoria"
             element={
-
-              <Audit />
-
+              <PrivateRoute>
+                <Audit />
+              </PrivateRoute>
             }
           />
 
           <Route
             path="/roles"
             element={
-
-              <Roles />
-
+              <PrivateRoute>
+                <Roles />
+              </PrivateRoute>
             }
           />
 
           <Route
             path="/viviendas"
             element={
-              
+              <PrivateRoute>
                 <Houses />
-              
+              </PrivateRoute>
             }
           />
 
