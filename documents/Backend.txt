@@ -13,9 +13,9 @@ de rutas/endpoints expuestos para el ecosistema CondoSecure (Web y Móvil).
 El backend de CondoSecure está construido sobre una infraestructura Node.js robusta:
 
 * Node.js (v20+): Entorno de ejecución en tiempo de ejecución de JavaScript del lado del servidor.
-* Express (v4.19.2): Framework web rápido y minimalista para la gestión de rutas, HTTP y middlewares.
+* Express (v4.19.2): Framework web para la gestión de rutas, HTTP y middlewares.
 * Sequelize (v6.37.3): ORM (Object-Relational Mapping) basado en promesas para MySQL/MariaDB.
-* MySQL / MariaDB: Sistema de gestión de bases de datos relacional para persistencia de información.
+* MySQL: Sistema de gestión de bases de datos relacional para persistencia de información.
 * JSON Web Token -jsonwebtoken- (v9.0.2): Mecanismo de autenticación sin estado mediante tokens firmados (JWT).
 * Bcryptjs (v2.4.3): Algoritmo de hashing seguro para la encriptación de contraseñas de usuarios.
 * Multer (v1.4.5-lts.1): Middleware para el procesamiento de peticiones multipart/form-data (subida de archivos e imágenes).
