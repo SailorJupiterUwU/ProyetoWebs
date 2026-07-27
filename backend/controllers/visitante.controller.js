@@ -45,13 +45,7 @@ module.exports.crear = async (req, res) => {
         });
 
         const modulo = await Modulo.findOne({ where: { nombre: "Control QR" } });
-        await registrarAuditoria({
-            id_usuario: idUsuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Pase de visitante generado",
-            ip_origen:  req.ip,
-            detalle:    `Visitante: ${nombre} ${apellido} | Cédula: ${cedula} | Vivienda destino: #${id_vivienda_destino}`,
-        });
+        await registrarAuditoria(idUsuario, modulo?.id_modulo, "Pase de visitante generado", req.ip, `Visitante: ${nombre} ${apellido} | Cédula: ${cedula} | Vivienda destino: #${id_vivienda_destino}`);
 
         return res.status(201).json({
             id_visitante: nuevoVisitante.id_visitante,

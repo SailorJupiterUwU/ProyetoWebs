@@ -153,13 +153,7 @@ module.exports.crear = async (req, res) => {
         });
 
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     "Usuario creado por administrador",
-            ip_origen:  req.ip,
-            detalle:    `Correo: ${correo_login}`,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, "Usuario creado por administrador", req.ip, `Correo: ${correo_login}`);
 
         return res.status(201).json({
             id_usuario: nuevoUsuario.id_usuario,
@@ -194,12 +188,7 @@ module.exports.editar = async (req, res) => {
         }
 
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Datos del usuario #${id} editados`,
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Datos del usuario #${id} editados`, req.ip);
 
         return res.status(200).json({ msg: "Usuario actualizado" });
     } catch (err) {
@@ -225,12 +214,7 @@ module.exports.cambiarEstado = async (req, res) => {
         await usuario.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Estado del usuario #${id} cambiado a ${estado}`,
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Estado del usuario #${id} cambiado a ${estado}`, req.ip);
 
         return res.status(200).json({ msg: "Estado actualizado" });
     } catch (err) {
@@ -337,12 +321,7 @@ module.exports.aprobarSolicitud = async (req, res) => {
         await usuario.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Solicitud de registro aprobada para usuario #${id}`,
-            ip_origen:  req.ip,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Solicitud de registro aprobada para usuario #${id}`, req.ip);
 
         return res.status(200).json({ msg: "Usuario aprobado" });
     } catch (err) {
@@ -374,13 +353,7 @@ module.exports.rechazarSolicitud = async (req, res) => {
         await usuario.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Solicitud de registro rechazada para usuario #${id}`,
-            ip_origen:  req.ip,
-            detalle:    `Motivo: ${motivo_rechazo || "No especificado"}`,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Solicitud de registro rechazada para usuario #${id}`, req.ip, `Motivo: ${motivo_rechazo || "No especificado"}`);
 
         return res.status(200).json({ msg: "Usuario rechazado" });
     } catch (err) {

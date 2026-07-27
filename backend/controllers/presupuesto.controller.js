@@ -185,13 +185,7 @@ module.exports.importarExcel = async (req, res) => {
 
         // ── 7. Auditoría ──────────────────────────────────────────────────────
         const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Presupuesto ${anio} importado`,
-            ip_origen:  req.ip,
-            detalle:    `Archivo: ${req.file.filename} | Rubros: ${rubrosCreados} | Total: $${totalFinal.toFixed(2)} | Alícuotas generadas: ${alicuotasCreadas}`,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Presupuesto ${anio} importado`, req.ip, `Archivo: ${req.file.filename} | Rubros: ${rubrosCreados} | Total: $${totalFinal.toFixed(2)} | Alícuotas generadas: ${alicuotasCreadas}`);
 
         return res.status(201).json({
             id_presupuesto:    nuevoPresupuesto.id_presupuesto,
@@ -302,13 +296,7 @@ module.exports.agregarRubro = async (req, res) => {
         await presupuesto.save();
 
         const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Rubro #${id_rubro} asignado al presupuesto #${id}`,
-            ip_origen:  req.ip,
-            detalle:    `Monto asignado: $${monto_asignado}`,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Rubro #${id_rubro} asignado al presupuesto #${id}`, req.ip, `Monto asignado: $${monto_asignado}`);
 
         return res.status(201).json({ msg: "Rubro asignado al presupuesto" });
     } catch (err) {
@@ -349,13 +337,7 @@ module.exports.editarMontoRubro = async (req, res) => {
         }
 
         const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
-        await registrarAuditoria({
-            id_usuario: req.usuario?.id_usuario,
-            id_modulo:  modulo?.id_modulo,
-            accion:     `Monto del rubro #${idRubro} en presupuesto #${id} actualizado`,
-            ip_origen:  req.ip,
-            detalle:    `Nuevo monto: $${monto_asignado}`,
-        });
+        await registrarAuditoria(req.usuario?.id_usuario, modulo?.id_modulo, `Monto del rubro #${idRubro} en presupuesto #${id} actualizado`, req.ip, `Nuevo monto: $${monto_asignado}`);
 
         return res.status(200).json({ msg: "Monto actualizado" });
     } catch (err) {
