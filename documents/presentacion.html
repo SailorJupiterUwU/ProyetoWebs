@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CondoSecure – Presentación del Proyecto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --c1: #0f0c29;
+      --c2: #1a1035;
+      --accent1: #7c3aed;
+      --accent2: #4f46e5;
+      --accent3: #06b6d4;
+      --accent4: #10b981;
+      --accent5: #f59e0b;
+      --danger: #ef4444;
+      --glass: rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.12);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --transition: 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--c1);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ===================== BACKGROUND ===================== */
+    .bg-animated {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(135deg, #0f0c29 0%, #1a0533 35%, #0e1a3d 65%, #0f0c29 100%);
+    }
+    .bg-animated::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 800px 600px at 20% 30%, rgba(124,58,237,0.18) 0%, transparent 70%),
+                  radial-gradient(ellipse 600px 500px at 80% 70%, rgba(6,182,212,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse 500px 400px at 50% 90%, rgba(79,70,229,0.1) 0%, transparent 70%);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      0%   { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* ===================== SLIDE CONTAINER ===================== */
+    #slides-wrapper {
+      position: relative; z-index: 1;
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px 64px;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity var(--transition), transform var(--transition);
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+    .slide.exit {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* ===================== GLASS CARD ===================== */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+    }
+    .glass-dark {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 16px;
+    }
+
+    /* ===================== TYPOGRAPHY ===================== */
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 100px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tag-demo  { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .tag-arch  { background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+    .tag-tech  { background: rgba(6,182,212,0.2); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+    .tag-sec   { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .tag-time  { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+
+    h1.hero    { font-size: clamp(2.4rem,5vw,4rem); font-weight: 900; line-height: 1.1; letter-spacing: -0.02em; }
+    h2.title   { font-size: clamp(1.8rem,3.5vw,2.8rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
+    h3.section { font-size: clamp(1.1rem,2vw,1.4rem); font-weight: 700; }
+    p.lead     { font-size: clamp(0.95rem,1.6vw,1.15rem); color: var(--text-muted); line-height: 1.7; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #7c3aed, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-text-green {
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-text-warm {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ===================== GRID LAYOUTS ===================== */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; }
+
+    /* ===================== STAT CARD ===================== */
+    .stat-card {
+      padding: 22px 24px; border-radius: 16px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .stat-num  { font-size: 2.2rem; font-weight: 900; }
+    .stat-lbl  { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+    /* ===================== STEP / FLOW ===================== */
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 14px 18px; border-radius: 14px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+    }
+    .flow-num {
+      min-width: 32px; height: 32px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 800;
+    }
+
+    /* ===================== TECH PILL ===================== */
+    .tech-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: 10px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .tech-icon { font-size: 1.2rem; }
+
+    /* ===================== TIMELINE BAR ===================== */
+    .timeline {
+      width: 100%;
+      display: flex; border-radius: 12px; overflow: hidden;
+      height: 56px;
+    }
+    .tl-segment {
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; font-size: 0.7rem; font-weight: 700;
+      gap: 2px; padding: 4px 8px; text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    .tl-segment:last-child { border-right: none; }
+    .tl-label { font-size: 0.6rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ===================== ARCHITECTURE DIAGRAM ===================== */
+    .arch-box {
+      padding: 12px 18px; border-radius: 12px;
+      text-align: center; font-size: 0.82rem; font-weight: 600;
+      border: 1px solid;
+    }
+    .arch-arrow {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 1.4rem;
+    }
+
+    /* ===================== DEMO STEP ===================== */
+    .demo-step {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 20px; border-radius: 14px;
+      background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2);
+    }
+    .demo-step-icon {
+      font-size: 1.6rem; min-width: 40px;
+      text-align: center;
+    }
+    .demo-step-content { flex: 1; }
+    .demo-step-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .demo-step-desc  { font-size: 0.78rem; color: var(--text-muted); }
+    .demo-step-time  {
+      font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 100px; background: rgba(16,185,129,0.2); color: #34d399;
+      white-space: nowrap;
+    }
+
+    /* ===================== SECURITY GATE ===================== */
+    .gate {
+      padding: 18px 22px; border-radius: 16px;
+      border: 1px solid;
+    }
+    .gate-title { font-size: 0.85rem; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .gate-code  { font-family: 'Courier New', monospace; font-size: 0.78rem; opacity: 0.75; line-height: 1.6; }
+
+    /* ===================== NAVIGATION ===================== */
+    #nav {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+      z-index: 100;
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 28px; border-radius: 100px;
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(24px);
+    }
+    #nav button {
+      background: none; border: none; cursor: pointer;
+      color: var(--text); font-size: 1.1rem; padding: 6px 12px;
+      border-radius: 8px; transition: background 0.2s;
+    }
+    #nav button:hover { background: rgba(255,255,255,0.1); }
+    #nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+    #slide-counter { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); min-width: 56px; text-align: center; }
+
+    #dots {
+      position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
+      z-index: 100; display: flex; gap: 6px;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .dot.active { background: #7c3aed; transform: scale(1.5); }
+
+    /* Section separator in dots */
+    .dot-sep {
+      width: 2px; height: 6px; background: rgba(255,255,255,0.1);
+      border-radius: 1px; align-self: center;
+    }
+
+    /* Keyboard hint */
+    #kbd-hint {
+      position: fixed; top: 20px; right: 24px; z-index: 100;
+      font-size: 0.7rem; color: rgba(255,255,255,0.3);
+      display: flex; gap: 6px; align-items: center;
+    }
+    kbd {
+      padding: 2px 7px; border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05); font-family: inherit;
+    }
+
+    /* Section header badge */
+    .section-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px; border-radius: 100px; margin-bottom: 20px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    /* Progress bar */
+    #progress {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, #7c3aed, #06b6d4);
+      transition: width var(--transition); z-index: 200;
+    }
+
+    /* Divider line */
+    .divider { width: 60px; height: 3px; border-radius: 2px; margin: 12px 0; }
+
+    /* Code snippet */
+    .code-block {
+      background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 14px 18px;
+      font-family: 'Courier New', monospace; font-size: 0.78rem;
+      line-height: 1.7; color: #a5f3fc;
+    }
+    .code-comment { color: #4b5563; }
+    .code-key     { color: #c084fc; }
+    .code-val     { color: #34d399; }
+    .code-str     { color: #fbbf24; }
+
+    /* Entity relationship mini diagram */
+    .er-node {
+      padding: 8px 14px; border-radius: 8px;
+      font-size: 0.75rem; font-weight: 700;
+      text-align: center; border: 1px solid;
+    }
+
+    /* Animate in items */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slide.active .anim-1 { animation: fadeUp 0.4s ease 0.1s both; }
+    .slide.active .anim-2 { animation: fadeUp 0.4s ease 0.2s both; }
+    .slide.active .anim-3 { animation: fadeUp 0.4s ease 0.3s both; }
+    .slide.active .anim-4 { animation: fadeUp 0.4s ease 0.4s both; }
+    .slide.active .anim-5 { animation: fadeUp 0.4s ease 0.5s both; }
+    .slide.active .anim-6 { animation: fadeUp 0.4s ease 0.6s both; }
+    .slide.active .anim-7 { animation: fadeUp 0.4s ease 0.7s both; }
+
+    /* Glow orbs */
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); pointer-events: none; z-index: 0;
+    }
+
+    /* Logo */
+    .logo-img { width: 56px; height: 56px; object-fit: contain; }
+    .logo-sm  { width: 36px; height: 36px; object-fit: contain; }
+
+    /* fixed logo bar */
+    #logo-bar {
+      position: fixed; top: 20px; left: 24px; z-index: 100;
+      display: flex; align-items: center; gap: 10px;
+    }
+    #logo-bar img { width: 36px; height: 36px; }
+    #logo-bar span { font-size: 0.85rem; font-weight: 800; letter-spacing: -0.01em; }
+  </style>
+</head>
+<body>
+
+<div class="bg-animated"></div>
+<div id="progress"></div>
+
+<!-- Fixed logo -->
+<div id="logo-bar">
+  <img src="../fronted/public/condominio.png" alt="CondoSecure Logo" onerror="this.style.display='none'" />
+  <span class="gradient-text">CondoSecure</span>
+</div>
+
+<!-- Keyboard hint -->
+<div id="kbd-hint">
+  <kbd>←</kbd><kbd>→</kbd> navegar &nbsp;|&nbsp; <kbd>F</kbd> pantalla completa
+</div>
+
+<!-- Dots navigation -->
+<div id="dots"></div>
+
+<!-- Navigation -->
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" title="Anterior">&#8592;</button>
+  <span id="slide-counter">1 / 13</span>
+  <button id="btn-next" onclick="changeSlide(1)" title="Siguiente">&#8594;</button>
+</div>
+
+<!-- ============================================================ -->
+<!--  S L I D E S                                                  -->
+<!-- ============================================================ -->
+<div id="slides-wrapper">
+
+  <!-- =================== SLIDE 1: PORTADA =================== -->
+  <div class="slide active" id="s1">
+    <div class="orb" style="width:500px;height:500px;top:-100px;left:-100px;background:rgba(124,58,237,0.15);"></div>
+    <div class="orb" style="width:400px;height:400px;bottom:-80px;right:-80px;background:rgba(6,182,212,0.1);"></div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:28px;position:relative;z-index:1;max-width:860px;">
+      <div class="anim-1" style="display:flex;align-items:center;gap:16px;">
+        <img src="../fronted/public/condominio.png" alt="Logo" class="logo-img"
+             style="filter:drop-shadow(0 0 20px rgba(124,58,237,0.6));"
+             onerror="this.outerHTML='<span style=font-size:3rem>🏢</span>'" />
+      </div>
+
+      <div class="anim-2">
+        <h1 class="hero">
+          <span class="gradient-text">CondoSecure</span>
+        </h1>
+        <p style="font-size:1.1rem;color:var(--text-muted);margin-top:6px;font-weight:400;">
+          Plataforma Integral de Gestión y Seguridad Residencial
+        </p>
+      </div>
+
+      <div class="anim-3" style="width:60px;height:2px;background:linear-gradient(90deg,#7c3aed,#06b6d4);border-radius:2px;"></div>
+
+      <div class="anim-4" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+        <span class="tag tag-tech">⚛️ React 19 + Vite 8</span>
+        <span class="tag tag-arch">🟩 Node.js + Express 5</span>
+        <span class="tag tag-sec">🔐 JWT + MySQL</span>
+        <span class="tag tag-time">🐳 Docker Ready</span>
+      </div>
+
+      <div class="anim-5 glass" style="padding:20px 40px;text-align:center;">
+        <div style="display:flex;gap:40px;align-items:center;flex-wrap:wrap;justify-content:center;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Integrantes</div>
+            <div style="font-weight:700;font-size:0.95rem;">Oscar Ortega &amp; Anaela Pozo</div>
+          </div>
+          <div style="width:1px;height:32px;background:var(--glass-border);"></div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Materia</div>
+            <div style="font-weight:700;font-size:0.95rem;">Aplicaciones Web &amp; Móviles</div>
+          </div>
+          <div style="width:1px;height:32px;background:var(--glass-border);"></div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Duración</div>
+            <div style="font-weight:700;font-size:0.95rem;">20 minutos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="anim-6 timeline" style="max-width:700px;">
+        <div class="tl-segment" style="flex:1;background:rgba(16,185,129,0.15);">
+          <span>🎬</span>
+          <span style="font-size:0.8rem;font-weight:800;color:#34d399;">DEMO EN VIVO</span>
+          <span class="tl-label">0–10 min</span>
+        </div>
+        <div class="tl-segment" style="flex:1;background:rgba(124,58,237,0.15);">
+          <span>🏗️</span>
+          <span style="font-size:0.8rem;font-weight:800;color:#a78bfa;">ARQUITECTURA</span>
+          <span class="tl-label">10–20 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 2: AGENDA DEMO =================== -->
+  <div class="slide" id="s2">
+    <div class="orb" style="width:400px;height:400px;top:-50px;right:0;background:rgba(16,185,129,0.12);"></div>
+
+    <div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:24px;position:relative;z-index:1;">
+      <div class="anim-1" style="text-align:center;">
+        <div class="section-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;">
+          🎬 Parte 1 — Demostración en Vivo
+        </div>
+        <h2 class="title">¿Qué vamos a mostrar? <span class="gradient-text-green">10 minutos</span></h2>
+        <p class="lead" style="margin-top:8px;">Flujo completo de la aplicación desde el usuario más privilegiado hasta el control de acceso físico</p>
+      </div>
+
+      <div class="anim-2" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="demo-step">
+          <div class="demo-step-icon">🔐</div>
+          <div class="demo-step-content">
+            <div class="demo-step-title">1. Login con control de roles</div>
+            <div class="demo-step-desc">Entrar como <strong>Administrador</strong> → ver menú completo. Cambiar a cuenta de <strong>Residente</strong> → mostrar menú reducido. Evidenciar diferencia de permisos en tiempo real.</div>
+          </div>
+          <span class="demo-step-time">~2 min</span>
+        </div>
+
+        <div class="demo-step">
+          <div class="demo-step-icon">📊</div>
+          <div class="demo-step-content">
+            <div class="demo-step-title">2. Dashboard y módulo financiero</div>
+            <div class="demo-step-desc">KPIs en tiempo real: ingresos vs. egresos, cartera de alícuotas pendientes y presupuesto por rubros. Registrar un nuevo ingreso y ver cómo se actualiza el balance.</div>
+          </div>
+          <span class="demo-step-time">~3 min</span>
+        </div>
+
+        <div class="demo-step">
+          <div class="demo-step-icon">📱</div>
+          <div class="demo-step-content">
+            <div class="demo-step-title">3. Generación y escaneo de código QR</div>
+            <div class="demo-step-desc">Generar un pase de visitante con QR dinámico → cambiar al rol de guardia → escanear el QR con la cámara web → ver confirmación de acceso y revocación automática.</div>
+          </div>
+          <span class="demo-step-time">~3 min</span>
+        </div>
+
+        <div class="demo-step">
+          <div class="demo-step-icon">📋</div>
+          <div class="demo-step-content">
+            <div class="demo-step-title">4. Auditoría pasiva en acción</div>
+            <div class="demo-step-desc">Abrir el módulo de Auditoría → mostrar que cada acción realizada durante la demo quedó registrada automáticamente con usuario, IP, módulo y timestamp exacto.</div>
+          </div>
+          <span class="demo-step-time">~2 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 3: DEMO – LOGIN & ROLES =================== -->
+  <div class="slide" id="s3">
+    <div class="orb" style="width:350px;height:350px;bottom:0;left:-50px;background:rgba(16,185,129,0.1);"></div>
+
+    <div style="width:100%;max-width:960px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;">
+          🎬 Demo — Paso 1
+        </div>
+        <h2 class="title">Login &amp; <span class="gradient-text-green">Control de Roles</span></h2>
+      </div>
+
+      <div class="anim-2 grid-2" style="align-items:start;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <h3 class="section" style="color:#34d399;">👑 Vista: Administrador</h3>
+          <div class="glass-dark" style="padding:16px;border-radius:14px;">
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;font-weight:700;letter-spacing:0.05em;">Menú completo</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">📊 Dashboard</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">👥 Gestión de Usuarios</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">💰 Ingresos / Egresos</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">📋 Presupuesto</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">📱 Seguridad QR</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">🔍 Auditoría</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(16,185,129,0.1);">🎭 Roles y Permisos</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <h3 class="section" style="color:#60a5fa;">🏠 Vista: Residente</h3>
+          <div class="glass-dark" style="padding:16px;border-radius:14px;">
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;font-weight:700;letter-spacing:0.05em;">Menú restringido</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(96,165,250,0.1);">📊 Mi Dashboard</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(96,165,250,0.1);">💳 Mis Alícuotas</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(96,165,250,0.1);">📱 Generar QR Visitante</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;padding:6px 10px;border-radius:8px;background:rgba(239,68,68,0.08);border:1px dashed rgba(239,68,68,0.2);color:var(--text-muted);">🚫 Resto → No visible</div>
+            </div>
+          </div>
+
+          <div class="glass" style="padding:14px 16px;">
+            <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.05em;margin-bottom:6px;">💡 Punto de Impacto</div>
+            <p style="font-size:0.82rem;line-height:1.6;">El menú lateral se construye dinámicamente según los módulos habilitados en la tabla <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:0.78rem;">rolModulo</code>. Sin recompilar la app.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 4: DEMO – DASHBOARD FINANCIERO =================== -->
+  <div class="slide" id="s4">
+    <div class="orb" style="width:350px;height:350px;top:0;right:0;background:rgba(245,158,11,0.1);"></div>
+
+    <div style="width:100%;max-width:960px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;">
+          🎬 Demo — Paso 2
+        </div>
+        <h2 class="title">Dashboard &amp; <span class="gradient-text-warm">Módulo Financiero</span></h2>
+      </div>
+
+      <div class="anim-2 grid-4">
+        <div class="stat-card">
+          <span class="stat-num" style="color:#34d399;">$48.2k</span>
+          <span class="stat-lbl">Ingresos del mes</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" style="color:#ef4444;">$12.7k</span>
+          <span class="stat-lbl">Egresos registrados</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" style="color:#f59e0b;">14</span>
+          <span class="stat-lbl">Alícuotas pendientes</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" style="color:#60a5fa;">$35.5k</span>
+          <span class="stat-lbl">Balance disponible</span>
+        </div>
+      </div>
+
+      <div class="anim-3 grid-2" style="align-items:start;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section">💡 Qué mostrar en vivo</h3>
+          <div class="flow-step">
+            <div class="flow-num" style="background:rgba(245,158,11,0.2);color:#f59e0b;">1</div>
+            <div>
+              <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;">Abrir Dashboard</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">KPIs y gráfica ingresos vs. egresos con datos reales</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num" style="background:rgba(16,185,129,0.2);color:#34d399;">2</div>
+            <div>
+              <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;">Registrar un nuevo ingreso</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">Pago de alícuota con comprobante adjunto (Multer)</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num" style="background:rgba(124,58,237,0.2);color:#a78bfa;">3</div>
+            <div>
+              <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;">Mostrar saldo actualizado</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">El dashboard se actualiza sin recargar la página</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section">🗂️ Módulos financieros activos</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span class="tech-pill"><span class="tech-icon">💰</span>Ingresos</span>
+            <span class="tech-pill"><span class="tech-icon">📤</span>Egresos</span>
+            <span class="tech-pill"><span class="tech-icon">🏠</span>Alícuotas</span>
+            <span class="tech-pill"><span class="tech-icon">📋</span>Presupuesto</span>
+            <span class="tech-pill"><span class="tech-icon">📁</span>Rubros</span>
+            <span class="tech-pill"><span class="tech-icon">🏭</span>Proveedores</span>
+            <span class="tech-pill"><span class="tech-icon">⚠️</span>Multas</span>
+            <span class="tech-pill"><span class="tech-icon">📊</span>Reportes</span>
+          </div>
+
+          <div class="glass" style="padding:14px 16px;margin-top:4px;">
+            <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.05em;margin-bottom:6px;">🔑 Punto clave</div>
+            <p style="font-size:0.82rem;line-height:1.6;">Los archivos adjuntos en egresos se almacenan con <strong>Multer</strong> y quedan vinculados al registro contable. Las transacciones financieras se protegen con propiedades <strong>ACID</strong> de MySQL.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 5: DEMO – QR =================== -->
+  <div class="slide" id="s5">
+    <div class="orb" style="width:400px;height:400px;bottom:-50px;right:-50px;background:rgba(6,182,212,0.12);"></div>
+
+    <div style="width:100%;max-width:960px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;">
+          🎬 Demo — Paso 3
+        </div>
+        <h2 class="title">Control de Acceso <span style="color:#67e8f9;">QR Dinámico</span></h2>
+      </div>
+
+      <div class="anim-2 grid-2" style="align-items:start;">
+        <!-- Flujo -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section">🔄 Flujo completo en vivo</h3>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);">
+              <span style="font-size:1.4rem;">📱</span>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#34d399;">Residente genera el QR</div>
+                <div style="font-size:0.74rem;color:var(--text-muted);">Ingresa datos del visitante → el sistema crea un código temporal firmado</div>
+              </div>
+            </div>
+            <div style="text-align:center;color:var(--text-muted);font-size:1rem;">↓</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.2);">
+              <span style="font-size:1.4rem;">📷</span>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#67e8f9;">Guardia escanea con cámara web</div>
+                <div style="font-size:0.74rem;color:var(--text-muted);">Scanner en tiempo real desde el navegador, sin app adicional</div>
+              </div>
+            </div>
+            <div style="text-align:center;color:var(--text-muted);font-size:1rem;">↓</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);">
+              <span style="font-size:1.4rem;">✅</span>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#a78bfa;">Validación en el backend</div>
+                <div style="font-size:0.74rem;color:var(--text-muted);">API /qr/validar → verifica vigencia → registra entrada → revoca si es de un solo uso</div>
+              </div>
+            </div>
+            <div style="text-align:center;color:var(--text-muted);font-size:1rem;">↓</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);">
+              <span style="font-size:1.4rem;">📋</span>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#fcd34d;">Auditoría automática</div>
+                <div style="font-size:0.74rem;color:var(--text-muted);">El evento queda registrado en bitácora sin intervención del frontend</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Endpoints y datos -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <h3 class="section">🔌 Endpoints del módulo QR</h3>
+          <div class="code-block">
+            <div><span class="code-comment">// qr.routes.js</span></div>
+            <div><span class="code-key">POST</span>  <span class="code-str">/api/qr/validar</span></div>
+            <div><span class="code-key">PATCH</span> <span class="code-str">/api/qr/:id/ingreso</span></div>
+            <div><span class="code-key">PATCH</span> <span class="code-str">/api/qr/:id/salida</span></div>
+            <div><span class="code-key">DELETE</span> <span class="code-str">/api/qr/:id/revocar</span></div>
+          </div>
+
+          <h3 class="section" style="margin-top:4px;">📦 Modelo CodigoQr</h3>
+          <div class="code-block">
+            <div><span class="code-comment">// codigoQr.model.js</span></div>
+            <div><span class="code-key">token</span>:    <span class="code-val">STRING (único)</span></div>
+            <div><span class="code-key">tipo</span>:     <span class="code-val">TEMPORAL | PERMANENTE</span></div>
+            <div><span class="code-key">estado</span>:   <span class="code-val">ACTIVO | USADO | REVOCADO</span></div>
+            <div><span class="code-key">fecha_exp</span>: <span class="code-val">DATE</span></div>
+            <div><span class="code-key">id_visitante</span>: <span class="code-val">FK → Visitante</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 6: DEMO – AUDITORÍA =================== -->
+  <div class="slide" id="s6">
+    <div class="orb" style="width:300px;height:300px;top:0;left:0;background:rgba(239,68,68,0.08);"></div>
+
+    <div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:24px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;">
+          🎬 Demo — Paso 4
+        </div>
+        <h2 class="title">Auditoría <span class="gradient-text">Pasiva &amp; Transversal</span></h2>
+        <p class="lead" style="margin-top:8px;">Cada acción queda registrada automáticamente, sin código adicional en el frontend</p>
+      </div>
+
+      <div class="anim-2 grid-2" style="align-items:start;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section">⚙️ Cómo funciona internamente</h3>
+          <div class="code-block">
+            <div><span class="code-comment">// auditoria.util.js</span></div>
+            <div><span class="code-key">async function</span> <span class="code-val">registrarAuditoria</span>(</div>
+            <div>&nbsp; id_usuario,</div>
+            <div>&nbsp; id_modulo,</div>
+            <div>&nbsp; accion,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// "CREAR", "EDITAR"...</span></div>
+            <div>&nbsp; ip_origen,</div>
+            <div>&nbsp; detalle,</div>
+            <div>&nbsp; valor_anterior,</div>
+            <div>&nbsp; valor_nuevo</div>
+            <div>)</div>
+          </div>
+          <div class="glass" style="padding:12px 16px;">
+            <p style="font-size:0.8rem;line-height:1.6;color:var(--text-muted);">Se llama al final de cada controller exitoso. Si falla, <strong>no detiene</strong> la operación principal — el sistema no puede fallar por un log.</p>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section">📋 Datos que captura</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="flow-step">
+              <span style="font-size:1.2rem;">👤</span>
+              <div><strong>id_usuario</strong> — ¿quién hizo la acción?</div>
+            </div>
+            <div class="flow-step">
+              <span style="font-size:1.2rem;">📦</span>
+              <div><strong>id_modulo</strong> — ¿en qué módulo?</div>
+            </div>
+            <div class="flow-step">
+              <span style="font-size:1.2rem;">⚡</span>
+              <div><strong>accion</strong> — CREAR / EDITAR / ELIMINAR / LOGIN</div>
+            </div>
+            <div class="flow-step">
+              <span style="font-size:1.2rem;">🌐</span>
+              <div><strong>ip_origen</strong> — trazabilidad de red</div>
+            </div>
+            <div class="flow-step">
+              <span style="font-size:1.2rem;">🕐</span>
+              <div><strong>fecha</strong> — timestamp exacto del servidor</div>
+            </div>
+            <div class="flow-step">
+              <span style="font-size:1.2rem;">🔄</span>
+              <div><strong>valor_anterior / nuevo</strong> — qué cambió</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 7: TRANSICIÓN =================== -->
+  <div class="slide" id="s7">
+    <div class="orb" style="width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(124,58,237,0.12);"></div>
+
+    <div style="text-align:center;max-width:700px;display:flex;flex-direction:column;align-items:center;gap:28px;position:relative;z-index:1;">
+      <div class="anim-1" style="font-size:4rem;">🏗️</div>
+
+      <div class="anim-2">
+        <h2 class="title" style="font-size:clamp(2rem,4vw,3.2rem);">
+          Ahora: la <span class="gradient-text">Arquitectura</span>
+        </h2>
+        <p class="lead" style="margin-top:12px;max-width:560px;margin-inline:auto;">
+          ¿Cómo está construido CondoSecure? Exploramos el diseño técnico que hace todo esto posible.
+        </p>
+      </div>
+
+      <div class="anim-3" style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+        <div class="glass" style="padding:16px 24px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#7c3aed;">20</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Modelos relacionales</div>
+        </div>
+        <div class="glass" style="padding:16px 24px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#06b6d4;">18</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Grupos de endpoints</div>
+        </div>
+        <div class="glass" style="padding:16px 24px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#10b981;">17</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Custom Hooks</div>
+        </div>
+        <div class="glass" style="padding:16px 24px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#f59e0b;">14</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Páginas / Vistas</div>
+        </div>
+      </div>
+
+      <div class="anim-4 section-badge" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;">
+        ⏱️ Parte 2 — 10 minutos de arquitectura
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 8: ARQUITECTURA GENERAL =================== -->
+  <div class="slide" id="s8">
+    <div class="orb" style="width:400px;height:400px;top:-80px;right:-80px;background:rgba(124,58,237,0.12);"></div>
+
+    <div style="width:100%;max-width:980px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;">
+          🏗️ Arquitectura
+        </div>
+        <h2 class="title">Diseño <span class="gradient-text">Desacoplado</span> Cliente–Servidor</h2>
+      </div>
+
+      <!-- Big architecture diagram -->
+      <div class="anim-2" style="display:flex;align-items:center;gap:12px;width:100%;">
+
+        <!-- CLIENT SIDE -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#67e8f9;margin-bottom:4px;">Frontend — React + Vite</div>
+          <div class="arch-box" style="background:rgba(6,182,212,0.12);border-color:rgba(6,182,212,0.3);color:#67e8f9;">
+            🖥️ Browser / Web App (SPA)
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div class="arch-box" style="flex:1;background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.72rem;">
+              AuthContext<br/><span style="color:var(--text-muted);">Estado global</span>
+            </div>
+            <div class="arch-box" style="flex:1;background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.72rem;">
+              PrivateRoute<br/><span style="color:var(--text-muted);">Guard de rutas</span>
+            </div>
+          </div>
+          <div class="arch-box" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.72rem;">
+            17 Custom Hooks → API calls con Axios
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div class="arch-box" style="flex:1;background:rgba(6,182,212,0.06);border-color:rgba(6,182,212,0.15);font-size:0.7rem;">
+              14 Pages<br/><span style="color:var(--text-muted);">Vistas React</span>
+            </div>
+            <div class="arch-box" style="flex:1;background:rgba(6,182,212,0.06);border-color:rgba(6,182,212,0.15);font-size:0.7rem;">
+              CSS Modules<br/><span style="color:var(--text-muted);">Estilos aislados</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ARROW -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:100px;">
+          <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">HTTP/JSON</div>
+          <div style="font-size:1.8rem;color:var(--text-muted);">⇄</div>
+          <div style="padding:4px 10px;border-radius:6px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);font-size:0.65rem;font-weight:700;color:#fcd34d;text-align:center;">
+            JWT Bearer<br/>Authorization
+          </div>
+        </div>
+
+        <!-- SERVER SIDE -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#a78bfa;margin-bottom:4px;">Backend — Node.js + Express</div>
+          <div class="arch-box" style="background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.3);color:#a78bfa;">
+            🟩 server.js — Punto de entrada
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div class="arch-box" style="flex:1;background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.25);font-size:0.72rem;color:#fca5a5;">
+              🔐 Middleware Auth<br/><span style="color:var(--text-muted);">Verifica JWT</span>
+            </div>
+            <div class="arch-box" style="flex:1;background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.25);font-size:0.72rem;color:#fca5a5;">
+              🛡️ Middleware Authz<br/><span style="color:var(--text-muted);">Verifica rol</span>
+            </div>
+          </div>
+          <div class="arch-box" style="background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.2);font-size:0.72rem;">
+            18 Routes → Controllers → Utils
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div class="arch-box" style="flex:1;background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);font-size:0.7rem;color:#34d399;">
+              🗄️ MySQL<br/>Sequelize ORM<br/><span style="color:var(--text-muted);">20 modelos</span>
+            </div>
+            <div class="arch-box" style="flex:1;background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);font-size:0.7rem;color:#34d399;">
+              📁 Multer<br/>Uploads<br/><span style="color:var(--text-muted);">Comprobantes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOBILE -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:80px;">
+          <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;text-align:center;">Misma API</div>
+          <div style="font-size:1.4rem;">📱</div>
+          <div class="arch-box" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);font-size:0.65rem;color:#fcd34d;text-align:center;">
+            App Móvil<br/>(futuro)
+          </div>
+        </div>
+      </div>
+
+      <div class="anim-3 glass" style="padding:12px 20px;">
+        <p style="font-size:0.82rem;line-height:1.5;text-align:center;">
+          🔑 <strong>Clave de diseño:</strong> El backend expone <em>únicamente</em> JSON sobre HTTP. Cualquier cliente (web, móvil, escritorio) puede consumirlo sin cambiar una línea de lógica del servidor.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 9: STACK TECNOLÓGICO =================== -->
+  <div class="slide" id="s9">
+    <div class="orb" style="width:350px;height:350px;bottom:0;left:0;background:rgba(6,182,212,0.1);"></div>
+
+    <div style="width:100%;max-width:940px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;">
+          🏗️ Arquitectura
+        </div>
+        <h2 class="title">Stack <span class="gradient-text">Tecnológico</span> y por qué</h2>
+      </div>
+
+      <div class="anim-2 grid-2" style="align-items:start;gap:14px;">
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section" style="color:#67e8f9;">⚛️ Frontend</h3>
+          <div class="glass-dark" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">⚛️</span>React 19</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">UI declarativa basada en componentes</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">⚡</span>Vite 8</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">HMR instantáneo, builds optimizados</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🗺️</span>React Router 7</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Navegación SPA + rutas protegidas</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🎨</span>CSS Modules</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Estilos aislados por componente</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🌐</span>Axios</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">HTTP client con interceptores JWT</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section" style="color:#a78bfa;">🟩 Backend</h3>
+          <div class="glass-dark" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🟩</span>Node.js + Express 5</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Servidor HTTP no bloqueante</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🗄️</span>MySQL + Sequelize</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">ACID, relaciones, integridad financiera</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🔐</span>JWT + bcryptjs</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Tokens firmados + hashing de contraseñas</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">📁</span>Multer</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Gestión de archivos adjuntos</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="tech-pill"><span class="tech-icon">🐳</span>Docker</span>
+              <span style="font-size:0.75rem;color:var(--text-muted);">Contenedorización lista para producción</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="anim-3" style="display:flex;gap:12px;">
+        <div class="glass" style="flex:1;padding:14px 18px;">
+          <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:#f59e0b;letter-spacing:0.05em;margin-bottom:6px;">❓ ¿Por qué MySQL y no MongoDB?</div>
+          <p style="font-size:0.8rem;line-height:1.6;color:var(--text-muted);">CondoSecure maneja un <strong>motor contable y financiero</strong> (alícuotas, presupuestos, egresos). Las ACID de MySQL garantizan <strong>integridad referencial</strong> estricta entre saldos — no podemos permitir inconsistencias en datos financieros.</p>
+        </div>
+        <div class="glass" style="flex:1;padding:14px 18px;">
+          <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:#34d399;letter-spacing:0.05em;margin-bottom:6px;">🌱 Seeder automático</div>
+          <p style="font-size:0.8rem;line-height:1.6;color:var(--text-muted);">Al iniciar el servidor, <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">seeder.js</code> crea automáticamente los roles base, módulos del sistema y el superadministrador. Zero configuración manual en despliegue.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 10: SEGURIDAD DE DOBLE CAPA =================== -->
+  <div class="slide" id="s10">
+    <div class="orb" style="width:400px;height:400px;top:0;right:-100px;background:rgba(239,68,68,0.1);"></div>
+
+    <div style="width:100%;max-width:940px;display:flex;flex-direction:column;gap:22px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;">
+          🏗️ Arquitectura
+        </div>
+        <h2 class="title">Seguridad de <span class="gradient-text-warm">Doble Capa</span></h2>
+        <p class="lead" style="margin-top:6px;">Toda petición a la API pasa por dos barreras antes de ejecutarse</p>
+      </div>
+
+      <div class="anim-2 grid-2" style="align-items:start;">
+        <div class="gate" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);">
+          <div class="gate-title" style="color:#fca5a5;">🔒 Puerta 1 — Autenticación</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;">¿Eres quien dices ser?</div>
+          <div class="gate-code">
+            <div><span style="color:#c084fc;">autenticacion</span>(req, res, next) {</div>
+            <div>&nbsp; <span style="color:#60a5fa;">const</span> token = req.headers</div>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;["authorization"]</div>
+            <div>&nbsp; jwt.<span style="color:#34d399;">verify</span>(token, JWT_SECRET)</div>
+            <div>&nbsp; <span style="color:#fbbf24;">// Verifica usuario ACTIVO en BD</span></div>
+            <div>&nbsp; <span style="color:#c084fc;">if</span> (usuario.estado !== "ACTIVO")</div>
+            <div>&nbsp;&nbsp;&nbsp; → HTTP <span style="color:#ef4444;">403</span></div>
+            <div>}</div>
+          </div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+            <span style="font-size:0.72rem;padding:3px 10px;border-radius:100px;background:rgba(239,68,68,0.15);color:#fca5a5;">JWT Signature</span>
+            <span style="font-size:0.72rem;padding:3px 10px;border-radius:100px;background:rgba(239,68,68,0.15);color:#fca5a5;">Estado ACTIVO en BD</span>
+            <span style="font-size:0.72rem;padding:3px 10px;border-radius:100px;background:rgba(239,68,68,0.15);color:#fca5a5;">Token no expirado</span>
+          </div>
+        </div>
+
+        <div class="gate" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);">
+          <div class="gate-title" style="color:#fcd34d;">🛡️ Puerta 2 — Autorización (RBAC)</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;">¿Tienes permiso para esto?</div>
+          <div class="gate-code">
+            <div><span style="color:#c084fc;">autorizacion</span>(rolesPermitidos) {</div>
+            <div>&nbsp; <span style="color:#60a5fa;">const</span> rol = Rol.<span style="color:#34d399;">findByPk</span>(</div>
+            <div>&nbsp;&nbsp;&nbsp; req.usuario.id_rol)</div>
+            <div>&nbsp; <span style="color:#c084fc;">if</span> (!rolesPermitidos</div>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .<span style="color:#34d399;">includes</span>(rol.nombre))</div>
+            <div>&nbsp;&nbsp;&nbsp; → HTTP <span style="color:#ef4444;">403</span></div>
+            <div>}</div>
+          </div>
+          <div style="margin-top:10px;display:flex;flex-wrap:gap:6px;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:0.72rem;padding:3px 10px;border-radius:100px;background:rgba(245,158,11,0.15);color:#fcd34d;">Role-Based</span>
+            <span style="font-size:0.72rem;padding:3px 10px;border-radius:100px;background:rgba(245,158,11,0.15);color:#fcd34d;">Por endpoint</span>
+            <span style="font-size:0.72rem;padding:3px 10px;border-radius:100px;background:rgba(245,158,11,0.15);color:#fcd34d;">Configurable</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="anim-3" style="display:flex;align-items:center;gap:16px;padding:14px 20px;border-radius:14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);">
+        <span style="font-size:2rem;">💡</span>
+        <p style="font-size:0.85rem;line-height:1.6;">
+          <strong>Dato importante:</strong> El frontend almacena el token en <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">localStorage</code> solo para renderizar la interfaz. La validación <em>real</em> ocurre en el backend, donde la firma JWT no puede ser falsificada sin la clave secreta del servidor.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 11: CUSTOM HOOKS & CLEAN CODE =================== -->
+  <div class="slide" id="s11">
+    <div class="orb" style="width:300px;height:300px;top:0;left:0;background:rgba(16,185,129,0.08);"></div>
+
+    <div style="width:100%;max-width:940px;display:flex;flex-direction:column;gap:20px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;">
+          🏗️ Arquitectura
+        </div>
+        <h2 class="title">Custom Hooks &amp; <span class="gradient-text-green">Código Limpio</span></h2>
+        <p class="lead" style="margin-top:6px;">Los 17 Custom Hooks son el corazón del desacoplamiento en el frontend</p>
+      </div>
+
+      <div class="anim-2 grid-2" style="align-items:start;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <h3 class="section">⚛️ Principio: UI ≠ Datos</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="arch-box" style="flex:1;background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:#67e8f9;font-size:0.8rem;padding:14px;">
+              📄 Componente React<br/>
+              <span style="color:var(--text-muted);font-size:0.72rem;">Solo muestra HTML<br/>Solo dispara eventos</span>
+            </div>
+            <div style="font-size:1.4rem;color:var(--text-muted);">⇄</div>
+            <div class="arch-box" style="flex:1;background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.3);color:#a78bfa;font-size:0.8rem;padding:14px;">
+              🪝 Custom Hook<br/>
+              <span style="color:var(--text-muted);font-size:0.72rem;">Maneja estado<br/>Llama a la API</span>
+            </div>
+          </div>
+
+          <div class="code-block" style="margin-top:4px;">
+            <div><span class="code-comment">// useAuth.js — ejemplo real</span></div>
+            <div><span class="code-key">const</span> useAuth = () => {</div>
+            <div>&nbsp; <span class="code-key">const</span> [loading, setLoading] = ...</div>
+            <div>&nbsp; <span class="code-key">const</span> login = <span class="code-key">async</span>(correo, pwd) => {</div>
+            <div>&nbsp;&nbsp;&nbsp; <span class="code-val">await</span> api.post(ENDPOINTS.AUTH.LOGIN,</div>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { correo_login, password })</div>
+            <div>&nbsp; }</div>
+            <div>&nbsp; <span class="code-key">return</span> { login, loading, error }</div>
+            <div>}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <h3 class="section">🪝 Los 17 Custom Hooks</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useAuth</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useDashboard</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useUsers</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useRoles</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useViviendas</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useIngresos</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useEgresos</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">usePresupuesto</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useRubros</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useQr</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useVisitantes</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useAudit</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useHistorial</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useProveedores</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useReportes</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useSolicitudes</span>
+            <span class="tech-pill" style="font-size:0.72rem;padding:6px 12px;">useDeudaVivienda</span>
+          </div>
+
+          <div class="glass" style="padding:14px 16px;">
+            <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.05em;margin-bottom:6px;">✅ 4 Prácticas de Clean Code</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:0.78rem;">🗂️ <strong>endpoints.js</strong> — todas las URLs centralizadas</div>
+              <div style="font-size:0.78rem;">🎨 <strong>CSS Modules</strong> — cero colisión de estilos</div>
+              <div style="font-size:0.78rem;">🌱 <strong>Seeder.js</strong> — datos iniciales automáticos</div>
+              <div style="font-size:0.78rem;">🐳 <strong>Dockerfile</strong> — listo para producción</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 12: MODELO DE DATOS =================== -->
+  <div class="slide" id="s12">
+    <div class="orb" style="width:350px;height:350px;bottom:-80px;right:-80px;background:rgba(16,185,129,0.1);"></div>
+
+    <div style="width:100%;max-width:960px;display:flex;flex-direction:column;gap:20px;position:relative;z-index:1;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#a78bfa;">
+          🏗️ Arquitectura
+        </div>
+        <h2 class="title">Modelo de Datos — <span class="gradient-text">20 Entidades</span></h2>
+        <p class="lead" style="margin-top:6px;">Tres dominios interconectados que modelan la realidad del condominio</p>
+      </div>
+
+      <div class="anim-2 grid-3" style="align-items:start;">
+
+        <!-- Dominio 1 -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:8px;border-radius:10px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);">
+            <span style="font-size:1.2rem;">👥</span>
+            <div style="font-size:0.72rem;font-weight:800;color:#67e8f9;text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;">Personas &amp; Accesos</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div class="er-node" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.3);color:#67e8f9;">Persona</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓ 1:N</div>
+            <div class="er-node" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.7rem;">Usuario</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓ N:1</div>
+            <div class="er-node" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.7rem;">Rol</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓ N:M</div>
+            <div class="er-node" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.7rem;">RolModulo (pivot)</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.2);font-size:0.7rem;">Modulo</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(6,182,212,0.06);border-color:rgba(6,182,212,0.15);font-size:0.7rem;">Vivienda</div>
+            <div class="er-node" style="background:rgba(6,182,212,0.06);border-color:rgba(6,182,212,0.15);font-size:0.7rem;">TokenRecuperacion</div>
+          </div>
+        </div>
+
+        <!-- Dominio 2 -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:8px;border-radius:10px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);">
+            <span style="font-size:1.2rem;">💰</span>
+            <div style="font-size:0.72rem;font-weight:800;color:#fcd34d;text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;">Motor Contable</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div class="er-node" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:#fcd34d;">Presupuesto</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓ N:M</div>
+            <div class="er-node" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);font-size:0.7rem;">PresupuestoRubro (pivot)</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);font-size:0.7rem;">Rubro</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.25);font-size:0.7rem;color:#34d399;">Ingreso / Alícuota</div>
+            <div class="er-node" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25);font-size:0.7rem;color:#fca5a5;">Egreso</div>
+            <div class="er-node" style="background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.15);font-size:0.7rem;">Multa</div>
+            <div class="er-node" style="background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.15);font-size:0.7rem;">ReporteFinanciero</div>
+            <div class="er-node" style="background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.15);font-size:0.7rem;">Proveedor</div>
+          </div>
+        </div>
+
+        <!-- Dominio 3 -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:8px;border-radius:10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);">
+            <span style="font-size:1.2rem;">🔐</span>
+            <div style="font-size:0.72rem;font-weight:800;color:#a78bfa;text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;">Control Físico &amp; Trazabilidad</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div class="er-node" style="background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.3);color:#a78bfa;">CodigoQr</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓ N:1</div>
+            <div class="er-node" style="background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.2);font-size:0.7rem;">Visitante</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.15);font-size:0.7rem;">Historial (accesos)</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25);font-size:0.7rem;color:#fca5a5;">Auditoria</div>
+            <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);">↓</div>
+            <div class="er-node" style="background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.15);font-size:0.7rem;">PeriodoDirectiva</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== SLIDE 13: CIERRE & ESCALABILIDAD =================== -->
+  <div class="slide" id="s13">
+    <div class="orb" style="width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(124,58,237,0.1);"></div>
+
+    <div style="width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center;gap:28px;position:relative;z-index:1;text-align:center;">
+      <div class="anim-1">
+        <div class="section-badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;">
+          🏁 Conclusión
+        </div>
+        <h2 class="title" style="font-size:clamp(2rem,4vw,3rem);">
+          Una plataforma construida<br/>para <span class="gradient-text">escalar</span>
+        </h2>
+      </div>
+
+      <div class="anim-2 grid-3" style="text-align:left;">
+        <div class="glass" style="padding:20px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:1.6rem;">🔐</div>
+          <h3 class="section" style="font-size:0.9rem;">Seguridad Empresarial</h3>
+          <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;">JWT + doble middleware de autenticación y autorización. Contraseñas con bcrypt. Auditoría pasiva en todas las operaciones.</p>
+        </div>
+        <div class="glass" style="padding:20px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:1.6rem;">🏗️</div>
+          <h3 class="section" style="font-size:0.9rem;">Arquitectura Desacoplada</h3>
+          <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;">API REST independiente de la UI. La App Móvil en <code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:0.72rem;">frontendMobile</code> consumirá los mismos servicios sin modificar el backend.</p>
+        </div>
+        <div class="glass" style="padding:20px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:1.6rem;">📱</div>
+          <h3 class="section" style="font-size:0.9rem;">Listo para Producción</h3>
+          <p style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;">Docker containerizado, seeder automático, Dockerfile incluido. Un solo comando levanta todo el ecosistema.</p>
+        </div>
+      </div>
+
+      <div class="anim-3" style="display:flex;gap:28px;flex-wrap:wrap;justify-content:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:2.2rem;font-weight:900;color:#7c3aed;">20</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Modelos</span>
+        </div>
+        <div style="width:1px;background:var(--glass-border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:2.2rem;font-weight:900;color:#06b6d4;">18</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Endpoints</span>
+        </div>
+        <div style="width:1px;background:var(--glass-border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:2.2rem;font-weight:900;color:#10b981;">17</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Hooks</span>
+        </div>
+        <div style="width:1px;background:var(--glass-border);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:2.2rem;font-weight:900;color:#f59e0b;">2</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;">Clientes</span>
+        </div>
+      </div>
+
+      <div class="anim-4" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <p style="font-size:1rem;color:var(--text-muted);">¡Gracias por su atención!</p>
+        <h3 style="font-size:1.4rem;font-weight:800;">¿Preguntas? <span class="gradient-text">Estamos listos 🚀</span></h3>
+        <div style="margin-top:4px;font-size:0.82rem;color:var(--text-muted);">
+          Oscar Ortega &amp; Anaela Pozo — Aplicaciones Web y Móviles
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /slides-wrapper -->
+
+<!-- ============================================================ -->
+<!--  J A V A S C R I P T                                          -->
+<!-- ============================================================ -->
+<script>
+  const totalSlides = 13;
+  let current = 0;
+  let animating = false;
+
+  const slides  = document.querySelectorAll('.slide');
+  const counter = document.getElementById('slide-counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const dotsEl  = document.getElementById('dots');
+  const progress = document.getElementById('progress');
+
+  // Build dots
+  const demoSlides = [0,1,2,3,4,5,6];
+  const archSlides = [7,8,9,10,11,12];
+
+  for (let i = 0; i < totalSlides; i++) {
+    if (i === 7) {
+      const sep = document.createElement('div');
+      sep.className = 'dot-sep';
+      dotsEl.appendChild(sep);
+    }
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.title = `Slide ${i + 1}`;
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function updateUI() {
+    counter.textContent = `${current + 1} / ${totalSlides}`;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === totalSlides - 1;
+    progress.style.width = `${((current + 1) / totalSlides) * 100}%`;
+
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function goTo(idx) {
+    if (animating || idx === current) return;
+    animating = true;
+
+    const prev = slides[current];
+    const next = slides[idx];
+
+    prev.classList.add('exit');
+    prev.classList.remove('active');
+
+    setTimeout(() => {
+      prev.classList.remove('exit');
+      current = idx;
+      next.classList.add('active');
+      updateUI();
+      setTimeout(() => { animating = false; }, 500);
+    }, 300);
+  }
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < totalSlides) goTo(next);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); changeSlide(-1); }
+    if (e.key.toLowerCase() === 'f') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+  });
+
+  // Touch swipe
+  let touchX = null;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend',   e => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) changeSlide(dx < 0 ? 1 : -1);
+    touchX = null;
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
