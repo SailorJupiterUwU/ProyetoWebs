@@ -1,0 +1,457 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Paquetes ──────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{float}
+
+% ── Colores ───────────────────────────────────────────────────────────────────
+\definecolor{primary}{HTML}{F97316}
+\definecolor{dark}{HTML}{1E293B}
+\definecolor{codebg}{HTML}{F8FAFC}
+\definecolor{codeframe}{HTML}{E2E8F0}
+
+% ── Estilo de encabezado/pie ──────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{primary}{\textbf{CondoSecure}}}
+\lhead{\textit{Informe Técnico del Proyecto}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Estilo de secciones ───────────────────────────────────────────────────────
+\titleformat{\section}{\large\bfseries\color{dark}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{primary}}{}{0em}{}
+
+% ── Estilo de código inline ───────────────────────────────────────────────────
+\lstset{
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  captionpos=b
+}
+
+% ── Hyperlinks ────────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=primary
+}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+% ── Portada ───────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+
+  {\Huge\bfseries\color{dark} CondoSecure}\\[0.5cm]
+  {\large\color{primary} Sistema de Gestión para Conjuntos Residenciales}\\[2cm]
+
+  \rule{\linewidth}{0.5pt}\\[0.5cm]
+  {\Large\bfseries Informe Técnico del Proyecto}\\[0.3cm]
+  {\normalsize Aplicaciones Web y Móviles — Séptimo Semestre}\\
+  \rule{\linewidth}{0.5pt}\\[2cm]
+
+  \begin{tabular}{rl}
+    \textbf{Autores:}   & O.O. / A.P. \\[0.3cm]
+    \textbf{Fecha:}     & Julio 2026 \\[0.3cm]
+    \textbf{Versión:}   & 1.0 \\
+  \end{tabular}
+
+  \vfill
+  {\small\textit{Proyecto 2 — Séptimo Semestre}}
+\end{titlepage}
+
+% ── Tabla de contenidos ───────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{Descripción General del Sistema}
+% =============================================================================
+
+\textbf{CondoSecure} es una aplicación web de gestión integral para conjuntos residenciales.
+El sistema permite administrar usuarios, viviendas, finanzas (ingresos, egresos, presupuestos),
+control de acceso mediante códigos QR, multas, auditoría y configuración de roles con
+permisos por módulo.
+
+El proyecto sigue una arquitectura cliente-servidor desacoplada: el \textbf{Backend} expone
+una API REST y el \textbf{Frontend} consume dicha API desde el navegador. Ambas partes
+se desarrollaron de forma independiente, con sus propias dependencias y carpetas.
+
+\subsection{Tecnologías principales}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\bfseries}l l}
+    \toprule
+    Capa & Tecnologías \\
+    \midrule
+    Backend  & Node.js, Express 5, Sequelize 6, MySQL 2, JWT, bcryptjs, Multer, xlsx \\
+    Frontend & React 19, Vite 8, React Router DOM 7, Axios, CSS Modules \\
+    Base de datos & MySQL (relacional) \\
+    Contenedor & Docker (dockerfile incluido) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Stack tecnológico del proyecto}
+\end{table}
+
+% =============================================================================
+\section{Estructura General del Repositorio}
+% =============================================================================
+
+\begin{lstlisting}
+ProyetoWebs/
+  backend/          <- API REST (Node.js + Express)
+  fronted/          <- SPA (React + Vite)
+  frontendMobile/   <- Cliente móvil (en desarrollo)
+  documents/        <- Documentación del proyecto
+  files/            <- Archivos estáticos adicionales
+\end{lstlisting}
+
+% =============================================================================
+\section{Backend}
+% =============================================================================
+
+El backend es una \textbf{API REST} construida con \textbf{Node.js} y \textbf{Express 5}.
+Se comunica con una base de datos \textbf{MySQL} a través del ORM \textbf{Sequelize}.
+El punto de entrada es \texttt{server.js}, donde se registran todos los modelos y rutas.
+
+\subsection{Estructura de carpetas}
+
+\begin{lstlisting}
+backend/
+  config/       <- Configuracion de Sequelize, JWT y variables de entorno
+  controllers/  <- Logica de negocio por modulo (18 controladores)
+  middlewares/  <- Autenticacion JWT y validacion de roles
+  models/       <- Modelos Sequelize (20 entidades)
+  routes/       <- Definicion de endpoints por modulo (19 archivos)
+  seed/         <- Script de poblacion inicial de la base de datos
+  utils/        <- Utilidades (registro de auditoria)
+  uploads/      <- Directorio para archivos subidos
+  server.js     <- Punto de entrada, registro de rutas y conexion a BD
+\end{lstlisting}
+
+\subsection{Modelos de datos}
+
+El sistema cuenta con \textbf{20 modelos} Sequelize que representan las entidades de la base de datos:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\ttfamily}l l}
+    \toprule
+    Modelo & Descripción \\
+    \midrule
+    persona         & Datos personales base (nombres, apellidos, CI/RUC) \\
+    usuario         & Cuenta de acceso (correo, contraseña, rol, estado) \\
+    rol             & Roles del sistema (Presidenta, Tesorera, Residente, Guardia) \\
+    modulo          & Módulos/secciones del sistema \\
+    rolModulo       & Tabla pivote: permisos de módulo por rol \\
+    vivienda        & Unidades habitacionales del conjunto \\
+    presupuesto     & Presupuestos anuales o por período \\
+    rubro           & Categorías de ingresos o egresos \\
+    presupuestoRubro & Relación presupuesto-rubro con montos \\
+    alicuota        & Cuotas de mantenimiento por vivienda \\
+    multa           & Sanciones económicas aplicadas \\
+    ingreso         & Pagos y entradas de dinero \\
+    proveedor       & Proveedores de servicios \\
+    egreso          & Gastos y salidas de dinero \\
+    reporteFinanciero & Reportes generados \\
+    visitante       & Registro de visitas al conjunto \\
+    codigoQr        & Códigos QR de acceso \\
+    tokenRecuperacion & Tokens para recuperación de contraseña \\
+    auditoria       & Registro de acciones del sistema \\
+    periodoDirectiva & Períodos de gestión de la directiva \\
+    \bottomrule
+  \end{tabular}
+  \caption{Entidades del sistema}
+\end{table}
+
+\subsection{Módulos y endpoints principales}
+
+El servidor registra \textbf{19 grupos de rutas} bajo el prefijo \texttt{/api/}:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\ttfamily}l l}
+    \toprule
+    Prefijo & Funcionalidad \\
+    \midrule
+    /api/auth        & Login, registro, recuperación y reset de contraseña \\
+    /api/usuarios    & CRUD de usuarios, cambio de estado, detalle, solicitudes \\
+    /api/roles       & CRUD de roles, cambio de estado, gestión de permisos por módulo \\
+    /api/modulos     & Listado de módulos del sistema \\
+    /api/viviendas   & CRUD de viviendas, cambio de estado \\
+    /api/presupuestos & Gestión de presupuestos anuales y rubros \\
+    /api/rubros      & Categorías de movimientos financieros \\
+    /api/alicuotas   & Cuotas de mantenimiento \\
+    /api/multas      & Registro y consulta de multas \\
+    /api/ingresos    & Pagos, resumen y distribución de ingresos \\
+    /api/egresos     & Gastos y egresos \\
+    /api/proveedores & Gestión de proveedores \\
+    /api/reportes    & Generación y descarga de reportes financieros \\
+    /api/dashboard   & Resumen ejecutivo y estadísticas \\
+    /api/visitantes  & Control de visitas \\
+    /api/qr          & Generación, validación y revocación de códigos QR \\
+    /api/auditoria   & Consulta del registro de auditoría \\
+    /api/historial   & Historial de movimientos \\
+    \bottomrule
+  \end{tabular}
+  \caption{Endpoints de la API REST}
+\end{table}
+
+\subsection{Autenticación y autorización}
+
+El sistema implementa un esquema de \textbf{doble middleware} para proteger los endpoints:
+
+\begin{enumerate}
+  \item \textbf{\texttt{autenticacion}}: verifica el token JWT en el encabezado
+  \texttt{Authorization: Bearer <token>}. Confirma además que el usuario se encuentre
+  en estado \texttt{ACTIVO} en la base de datos.
+
+  \item \textbf{\texttt{autorizacion(rolesPermitidos)}}: compara el rol del usuario
+  autenticado contra la lista de roles permitidos para ese endpoint. Retorna \texttt{403}
+  si el rol no está incluido.
+\end{enumerate}
+
+El token JWT se genera al iniciar sesión y contiene \texttt{id\_usuario} e \texttt{id\_rol}.
+
+\subsection{Auditoría}
+
+Todas las operaciones de creación, edición y cambio de estado registran una entrada
+en la tabla \texttt{auditoria} a través de la función \texttt{registrarAuditoria},
+almacenando: usuario, módulo, descripción de la acción y dirección IP.
+
+\subsection{Módulos adicionales del backend}
+
+\begin{itemize}[leftmargin=1.5cm]
+  \item \textbf{Multer}: manejo de subida de archivos (imágenes de perfil, comprobantes).
+  \item \textbf{xlsx}: lectura de archivos Excel para importación masiva de datos.
+  \item \textbf{bcryptjs}: hash seguro de contraseñas.
+  \item \textbf{Seeder}: script \texttt{seed/seeder.js} que popula datos iniciales
+  (roles, módulos, usuario administrador) automáticamente al levantar el servidor.
+  \item \textbf{Docker}: se incluye un \texttt{dockerfile} para contenedorización.
+\end{itemize}
+
+% =============================================================================
+\section{Frontend}
+% =============================================================================
+
+El frontend es una \textbf{Single Page Application (SPA)} construida con
+\textbf{React 19} y empaquetada con \textbf{Vite 8}. El enrutamiento es manejado
+por \textbf{React Router DOM 7} y las peticiones HTTP por \textbf{Axios}.
+
+El estilado utiliza \textbf{CSS Modules} — cada componente o página tiene su
+propio archivo \texttt{.module.css}, sin librerías externas de UI.
+
+\subsection{Estructura de carpetas}
+
+\begin{lstlisting}
+fronted/src/
+  App.jsx         <- Definicion de rutas globales
+  context/        <- AuthContext: estado global de sesion
+  hooks/          <- Custom hooks por modulo (16 hooks)
+  pages/          <- Vistas principales de la aplicacion
+  components/     <- Componentes reutilizables
+  utils/          <- API, endpoints, helpers y validadores
+\end{lstlisting}
+
+\subsection{Páginas (vistas)}
+
+Cada módulo tiene su propia carpeta dentro de \texttt{pages/}:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\ttfamily}l l}
+    \toprule
+    Carpeta & Vista \\
+    \midrule
+    Login / Register     & Inicio de sesión y registro de nuevos residentes \\
+    ForgotPassword / ResetPassword & Flujo de recuperación de contraseña por email \\
+    Dashboard            & Resumen ejecutivo con estadísticas y gráficos \\
+    Users/Registered     & Listado, detalle, edición y cambio de estado de usuarios \\
+    Users/Pending        & Solicitudes de registro pendientes de aprobación \\
+    Roles                & Gestión de roles y permisos por módulo \\
+    Houses               & Gestión de viviendas del conjunto \\
+    Budgets              & Presupuestos y rubros \\
+    Income               & Ingresos y pagos de alícuotas \\
+    Expenses             & Egresos y gastos \\
+    Security/GeneratePass & Generación de códigos QR de acceso \\
+    Security/Scanner     & Escáner QR para control de ingreso/salida \\
+    Audit                & Visualización del registro de auditoría \\
+    \bottomrule
+  \end{tabular}
+  \caption{Páginas del frontend}
+\end{table}
+
+\subsection{Custom Hooks}
+
+El frontend separa completamente la lógica de negocio de la vista mediante
+\textbf{custom hooks}, uno por módulo:
+
+\begin{lstlisting}
+hooks/
+  useAuth.js         useRoles.js      useUsers.js
+  useDashboard.js    useViviendas.js  usePresupuesto.js
+  useIngresos.js     useEgresos.js    useAudit.js
+  useHistorial.js    useQr.js         useReportes.js
+  useSolicitudes.js  useVisitantes.js useProveedores.js
+  useRubros.js       useDeudaVivienda.js
+\end{lstlisting}
+
+Cada hook encapsula: el estado local (\texttt{data}, \texttt{loading}, \texttt{error}),
+la llamada a la API via Axios, y las funciones de mutación (crear, editar, cambiar estado).
+
+\subsection{Contexto de autenticación}
+
+\texttt{AuthContext} es el estado global de sesión. Almacena el usuario autenticado
+y el token JWT en \texttt{localStorage}. Al iniciar sesión, el backend devuelve
+el objeto \texttt{usuario} incluyendo el arreglo \texttt{modulos} con los nombres
+de los módulos habilitados para su rol.
+
+Este arreglo es utilizado por el componente \textbf{Layout} para renderizar
+dinámicamente solo los ítems del menú lateral a los que el usuario tiene acceso.
+
+\subsection{Sistema de rutas y protección}
+
+Las rutas privadas están envueltas en un componente \texttt{PrivateRoute} que
+redirige a \texttt{/login} si no hay sesión activa. El acceso a las vistas
+también está protegido en el backend por los middlewares de autenticación y autorización.
+
+\subsection{Componentes comunes}
+
+\begin{itemize}[leftmargin=1.5cm]
+  \item \textbf{Layout}: estructura principal con sidebar dinámico y encabezado.
+  \item \textbf{PageHeader}: cabecera de página con breadcrumbs y título.
+  \item \textbf{LoadingSpinner}: indicador de carga reutilizable.
+  \item \textbf{Button / Input}: elementos de formulario estilizados.
+\end{itemize}
+
+\subsection{Utilidades del frontend}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\ttfamily}l l}
+    \toprule
+    Archivo & Descripción \\
+    \midrule
+    api.js       & Instancia Axios con baseURL e interceptores de token \\
+    endpoints.js & Centralización de todas las URLs de la API (evita duplicación) \\
+    helpers.js   & Formateo de fechas, manejo de errores API \\
+    validators.js & Validaciones de formularios reutilizables \\
+    \bottomrule
+  \end{tabular}
+  \caption{Utilidades del frontend}
+\end{table}
+
+% =============================================================================
+\section{Módulos Funcionales Implementados}
+% =============================================================================
+
+\subsection{Gestión de usuarios}
+Registro con aprobación por parte de la directiva. Edición de datos personales
+(nombres, apellidos, correo, teléfono). Cambio de estado (ACTIVO / INACTIVO).
+Vista de detalle con información completa del usuario y su rol.
+
+\subsection{Gestión de roles y permisos}
+Listado de roles con sus módulos asignados. Edición de nombre y descripción.
+Configuración de permisos por módulo mediante checkboxes. Los cambios se reflejan
+en el menú lateral del usuario afectado al siguiente inicio de sesión.
+
+\subsection{Control financiero}
+\begin{itemize}[leftmargin=1.5cm]
+  \item \textbf{Presupuestos}: creación con rubros y montos asignados.
+  \item \textbf{Ingresos}: registro de pagos de alícuotas y otros conceptos.
+  \item \textbf{Egresos}: registro de gastos con comprobantes.
+  \item \textbf{Dashboard}: resumen de ingresos vs egresos, cartera de deudas,
+  movimientos recientes.
+\end{itemize}
+
+\subsection{Control de acceso QR}
+Generación de códigos QR de acceso para residentes y visitantes.
+Escáner web integrado para registrar ingresos y salidas.
+Revocación de códigos activos.
+
+\subsection{Gestión de viviendas}
+CRUD de unidades habitacionales. Asociación de residentes a viviendas.
+Control de estado de cada unidad.
+
+\subsection{Auditoría}
+Registro automático de todas las operaciones relevantes: quién hizo qué,
+en qué módulo, cuándo y desde qué IP. Visualización filtrable desde la interfaz.
+
+\subsection{Recuperación de contraseña}
+Flujo completo: solicitud por correo electrónico, generación de token de recuperación
+con expiración, y formulario de restablecimiento.
+
+% =============================================================================
+\section{Flujo de Comunicación Frontend -- Backend}
+% =============================================================================
+
+\begin{enumerate}
+  \item El usuario ingresa sus credenciales en \texttt{/login}.
+  \item El frontend envía \texttt{POST /api/auth/login} con \texttt{correo\_login} y \texttt{password}.
+  \item El backend valida, genera un JWT y retorna el objeto usuario con sus módulos habilitados.
+  \item El frontend almacena el token en \texttt{localStorage} y actualiza \texttt{AuthContext}.
+  \item Todas las peticiones posteriores incluyen el header \texttt{Authorization: Bearer <token>}.
+  \item El middleware \texttt{autenticacion} valida el token en cada request protegido.
+  \item El middleware \texttt{autorizacion} verifica que el rol del usuario esté permitido.
+  \item El controlador ejecuta la lógica, interactúa con la base de datos via Sequelize y retorna JSON.
+\end{enumerate}
+
+% =============================================================================
+\section{Consideraciones de Diseño}
+% =============================================================================
+
+\begin{itemize}[leftmargin=1.5cm]
+  \item \textbf{Separación de responsabilidades}: el backend no sirve archivos HTML; el
+  frontend y el backend son proyectos completamente independientes.
+
+  \item \textbf{CSS Modules}: el estilado encapsulado por componente evita conflictos de
+  nombres y facilita el mantenimiento.
+
+  \item \textbf{Centralización de endpoints}: el archivo \texttt{endpoints.js} define todas
+  las URLs en un único lugar; los hooks solo referencian constantes, nunca cadenas hardcodeadas.
+
+  \item \textbf{Control de acceso en dos niveles}: la protección existe tanto en el frontend
+  (sidebar dinámico, rutas privadas) como en el backend (JWT + rol en cada endpoint).
+
+  \item \textbf{Auditoría transversal}: el registro de auditoría se realiza automáticamente
+  en los controladores de creación, edición y cambio de estado, sin lógica adicional en el frontend.
+
+  \item \textbf{Seed automático}: al iniciar el servidor, se ejecuta el seeder que garantiza
+  la existencia de roles, módulos y el usuario administrador inicial.
+\end{itemize}
+
+% =============================================================================
+\section{Conclusiones}
+% =============================================================================
+
+El sistema \textbf{CondoSecure} cubre los requerimientos de gestión integral de un
+conjunto residencial pequeño o mediano: control de usuarios con roles diferenciados,
+finanzas transparentes, control de acceso físico mediante QR y trazabilidad completa
+mediante auditoría.
+
+La arquitectura desacoplada (API REST + SPA) facilita el mantenimiento independiente
+de cada capa y permitiría, en el futuro, reutilizar el mismo backend para la aplicación
+móvil (\texttt{frontendMobile/}) sin cambios en la lógica de negocio.
+
+\end{document}

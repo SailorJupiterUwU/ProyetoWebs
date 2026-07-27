@@ -26,8 +26,6 @@ async function autenticacion(req, res, next) {
             return res.status(403).json({ mensaje: "Usuario inactivo. Contacte a la directiva." });
         }
 
-        // Solo adjuntamos el payload (id_usuario, id_rol).
-        // La resolución del nombre del rol queda a cargo de autorizacion().
         req.usuario = payload;
         next();
     } catch (error) {
