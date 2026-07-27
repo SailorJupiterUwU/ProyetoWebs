@@ -53,7 +53,17 @@ const useRoles = () => {
     }
   };
 
-  return { data, loading, error, refetch: fetchRoles, updateStatus, getModulos, updateModulos };
+  const editRol = async (id, payload) => {
+    try {
+      await api.put(ENDPOINTS.ROLES.ACTUALIZAR(id), payload);
+      await fetchRoles();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  return { data, loading, error, refetch: fetchRoles, updateStatus, getModulos, updateModulos, editRol };
 };
 
 export default useRoles;

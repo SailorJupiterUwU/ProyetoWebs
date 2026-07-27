@@ -9,6 +9,7 @@
 }
 @media (min-width: 768px) { .container { padding: 2rem; } }
 
+/* ── Tabla ────────────────────────────────────────────────────────────────── */
 .tableCard {
   background: #fff;
   border: 1px solid #e0c0b1;
@@ -40,27 +41,39 @@
 .rowAlt { background: #f7f9fb; }
 .row:not(.rowAlt) { background: #fff; }
 
-.nameCell { padding: 1rem 1.5rem; font-weight: 600; color: #191c1e; white-space: nowrap; }
-.descCell { padding: 1rem 1.5rem; color: #584237; }
+.codeCell  { padding: 1rem 1.5rem; font-size: 0.8rem; color: #584237; font-family: monospace; }
+.nameCell  { padding: 1rem 1.5rem; font-weight: 600; color: #191c1e; white-space: nowrap; }
+.descCell  { padding: 1rem 1.5rem; color: #584237; max-width: 20rem; }
 .statusCell { padding: 1rem 1.5rem; }
 
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+/* ── Badges de estado ─────────────────────────────────────────────────────── */
 .statusBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  background: #dae2fd;
-  color: #3f465c;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
-.statusDot { width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: #9d4300; }
+.statusActive  { background: #dcfce7; color: #166534; }
+.statusInactive { background: #f3f4f6; color: #6b7280; }
 
+.statusDot { width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: currentColor; }
+
+/* ── Botones de acción en tabla ───────────────────────────────────────────── */
 .actionsCellWrap { padding: 1rem 1.5rem; text-align: right; }
 .actionsCell { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; }
+
 .iconButton {
   padding: 0.375rem;
   border-radius: 0.25rem;
@@ -70,59 +83,167 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
-.iconButton:hover { background: #eceef0; color: #f97316; }
+.iconButton:hover        { background: #eceef0; color: #f97316; }
+.iconButtonEdit:hover    { background: #eff6ff; color: #2563eb; }
+.iconButtonToggle:hover  { background: #fef9c3; color: #ca8a04; }
 
-/* Modal */
+/* ── Modal base ───────────────────────────────────────────────────────────── */
 .modalOverlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.6);
   z-index: 50;
   display: flex; align-items: center; justify-content: center;
   padding: 1rem;
+  animation: fadeIn 0.15s ease;
 }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 .modal {
   background: #fff;
   border-radius: 1rem;
-  max-width: 28rem;
+  max-width: 30rem;
   width: 100%;
   padding: 1.5rem;
   box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
   border: 1px solid #e5e7eb;
+  animation: slideUp 0.2s ease;
 }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 .modalHeader {
   display: flex; justify-content: space-between; align-items: center;
   padding-bottom: 0.75rem; border-bottom: 1px solid #f3f4f6; margin-bottom: 1rem;
 }
+.modalTitleGroup { display: flex; align-items: center; gap: 0.5rem; }
 .modalTitle { font-weight: 700; font-size: 1.125rem; color: #111827; }
-.modalCloseButton { color: #9ca3af; background: none; border: none; cursor: pointer; }
+.modalTitleIcon     { color: #f97316; font-size: 1.25rem; }
+.modalTitleIconEdit { color: #2563eb; font-size: 1.25rem; }
+
+.modalCloseButton { color: #9ca3af; background: none; border: none; cursor: pointer; transition: color 0.2s; }
 .modalCloseButton:hover { color: #4b5563; }
 
-.modalDescription { font-size: 0.75rem; color: #4b5563; margin-bottom: 1rem; }
+.modalDescription { font-size: 0.8125rem; color: #4b5563; margin-bottom: 1rem; }
 
-.permissionsList { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.75rem; }
+.modalLoading {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  padding: 2rem; color: #9ca3af; font-size: 0.875rem;
+}
+
+.modalFooter { margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; }
+
+/* ── Detalle ──────────────────────────────────────────────────────────────── */
+.detailList { display: flex; flex-direction: column; gap: 0; }
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+.detailRow:last-child { border-bottom: none; }
+.detailLabel { color: #6b7280; font-weight: 500; }
+.detailValue { color: #111827; font-weight: 600; text-align: right; }
+.detailRole  { color: #f97316; }
+
+.editFromDetailBtn {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  background: #eff6ff; color: #2563eb;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem; font-weight: 600;
+  border: 1px solid #bfdbfe;
+  cursor: pointer; transition: background 0.2s;
+}
+.editFromDetailBtn:hover { background: #dbeafe; }
+
+/* ── Permisos / Módulos ───────────────────────────────────────────────────── */
+.permissionsList { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; max-height: 16rem; overflow-y: auto; }
 .permissionRow {
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   background: #f9fafb;
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
   border: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
+.permissionName  { color: #374151; font-weight: 500; }
 .permissionAllowed { font-weight: 700; color: #16a34a; }
+.permissionDenied  { font-weight: 500; color: #9ca3af; }
 
-.modalFooter { margin-top: 1.5rem; display: flex; justify-content: flex-end; }
+.permsNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: #1d4ed8;
+}
+
+.toggleLabel { display: flex; align-items: center; gap: 0.375rem; cursor: pointer; }
+.toggleCheckbox { accent-color: #f97316; width: 1rem; height: 1rem; cursor: pointer; }
+
+/* ── Formulario editar ────────────────────────────────────────────────────── */
+.form { display: flex; flex-direction: column; gap: 1rem; }
+
+.formGroup { display: flex; flex-direction: column; gap: 0.375rem; }
+.formLabel { font-size: 0.8125rem; font-weight: 600; color: #374151; }
+
+.formInput,
+.formTextarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.formInput:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+}
+.formTextarea { resize: vertical; }
+
+.formActions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.25rem; }
+
+/* ── Botones de acción en modal ───────────────────────────────────────────── */
 .confirmButton {
+  display: inline-flex; align-items: center; gap: 0.25rem;
   background: #f97316;
   color: #fff;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
+  font-size: 0.875rem; font-weight: 600;
+  border: none; cursor: pointer;
+  transition: background 0.2s;
 }
-.confirmButton:hover { background: #9d4300; }
+.confirmButton:hover    { background: #9d4300; }
+.confirmButton:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.cancelBtn {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem; font-weight: 600;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cancelBtn:hover    { background: #e5e7eb; }
+.cancelBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Alerta error ─────────────────────────────────────────────────────────── */
 .errorAlert {
   padding: 1.5rem;
   text-align: center;
@@ -130,4 +251,12 @@
   background: #fef2f2;
   border: 1px solid #fee2e2;
   border-radius: 0.75rem;
+}
+.formErrorAlert {
+  padding: 0.75rem 1rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
 }
