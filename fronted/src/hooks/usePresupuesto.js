@@ -59,21 +59,19 @@ const usePresupuesto = (anioInicial = new Date().getFullYear()) => {
 
   const uploadBudget = async (archivo) => {
     try {
-      const archivoBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]); // quita el prefijo "data:...;base64,"
-        reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
-        reader.readAsDataURL(archivo);
-      });
+      // Enviamos el archivo como FormData (multipart/form-data)
+      // para que multer en el backend pueda recibirlo correctamente.
+      // Antes se enviaba como Base64 en JSON, lo que causaba error 413 (Payload Too Large).
+      const formData = new FormData();
+      formData.append('archivo', archivo);
+      formData.append('anio', anio);
 
-      const { data: res } = await api.post(ENDPOINTS.PRESUPUESTO.IMPORTAR, {
-        anio,
-        archivo: archivoBase64,
-        nombre_archivo: archivo.name,
+      const { data: res } = await api.post(ENDPOINTS.PRESUPUESTO.IMPORTAR, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       await loadAnio(anio);
-      return { success: true, msg: res.msg, rubros_creados: res.rubros_creados };
+      return { success: true, msg: res.msg, rubros_creados: res.rubros_creados, alicuotas_creadas: res.alicuotas_creadas ?? 0 };
     } catch (err) {
       return { success: false, error: handleApiError(err) };
     }

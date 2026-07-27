@@ -3,6 +3,10 @@ const Presupuesto = require("../models/presupuesto.model");
 const Rubro = require("../models/rubro.model");
 const PresupuestoRubro = require("../models/presupuestoRubro.model");
 const Egreso = require("../models/egreso.model");
+const Modulo = require("../models/modulo.model");
+const Alicuota = require("../models/alicuota.model");
+const Vivienda = require("../models/vivienda.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. LISTAR PRESUPUESTOS (GET /presupuestos)
@@ -56,6 +60,11 @@ module.exports.detalle = async (req, res) => {
 
 // ==========================================
 // 3. IMPORTAR EXCEL (POST /presupuestos/importar)
+//    Solo se usa la Hoja 1 del Excel:
+//      - Rubros (fila 8+): col[0] = nombre, col[13] = total anual
+//      - Total con contingencia: fila siguiente a "SUBTOTAL ANUAL", col+2
+//    Las alícuotas se calculan automáticamente desde la BD:
+//      valor_mensual = total_presupuesto × vivienda.porcentaje_alicuota / 12
 // ==========================================
 module.exports.importarExcel = async (req, res) => {
     try {
@@ -64,52 +73,132 @@ module.exports.importarExcel = async (req, res) => {
         if (!anio) {
             return res.status(400).json({ msg: "El año del presupuesto es obligatorio" });
         }
+        if (!req.file) {
+            return res.status(400).json({ msg: "Se requiere un archivo Excel (.xlsx o .xls)" });
+        }
 
-        let nombreArchivo = "presupuesto.xlsx";
-        let rubrosCreadosCount = 0;
-        let sumaTotalPresupuesto = 0;
+        // ── 1. Leer el archivo guardado por multer ────────────────────────────
+        const workbook = xlsx.readFile(req.file.path);
+        const hoja     = workbook.Sheets[workbook.SheetNames[0]];
+        const filas    = xlsx.utils.sheet_to_json(hoja, { header: 1 });
 
-        // Si se subió un archivo a través de multer (req.file)
-        if (req.file) {
-            nombreArchivo = req.file.filename;
+        // ── 2. Extraer rubros (fila 8 en adelante) ────────────────────────────
+        //    col[0] = nombre del rubro (string), col[13] = total anual (número)
+        const rubrosDelExcel = [];
+        for (let i = 8; i < filas.length; i++) {
+            const fila       = filas[i];
+            const nombre     = fila[0];
+            const totalAnual = fila[13];
 
-            try {
-                // Leer el archivo Excel cargado en memoria/disco
-                const workbook = xlsx.readFile(req.file.path);
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const filas = xlsx.utils.sheet_to_json(worksheet);
-
-                // Recorrer filas del Excel si contiene información de rubros
-                for (let i = 0; i < filas.length; i++) {
-                    let fila = filas[i];
-                    let codigo = fila.CODIGO || fila.Codigo || `R${i + 1}`;
-                    let nombre = fila.NOMBRE || fila.Nombre || fila.CONCEPTO || fila.Concepto || `Rubro ${i + 1}`;
-                    let monto = Number(fila.MONTO || fila.Monto || fila.TOTAL || fila.Total || 0);
-
-                    if (monto > 0) {
-                        sumaTotalPresupuesto += monto;
-                        rubrosCreadosCount++;
-                    }
-                }
-            } catch (excelErr) {
-                console.error("Error al procesar Excel:", excelErr);
-                return res.status(400).json({ msg: "El archivo está corrupto o no tiene el formato esperado" });
+            if (!nombre || typeof nombre !== "string") break;
+            if (totalAnual && typeof totalAnual === "number" && totalAnual > 0) {
+                rubrosDelExcel.push({ nombre: nombre.trim(), total: totalAnual });
             }
         }
 
-        // Crear o actualizar el Presupuesto en la base de datos
+        // ── 3. Obtener el TOTAL FINAL con contingencia ────────────────────────
+        //    Buscar "SUBTOTAL ANUAL" en cualquier columna; el TOTAL está 2 cols
+        //    a la derecha en la fila siguiente (SUBTOTAL | CONTING. | TOTAL)
+        let totalFinal = 0;
+        for (let i = 0; i < filas.length; i++) {
+            const fila = filas[i];
+            const colSubtotal = fila.findIndex(
+                (celda) => typeof celda === "string" && celda.includes("SUBTOTAL ANUAL")
+            );
+            if (colSubtotal !== -1) {
+                const filaValores = filas[i + 1];
+                if (filaValores && filaValores[colSubtotal + 2]) {
+                    totalFinal = Number(filaValores[colSubtotal + 2]);
+                }
+                break;
+            }
+        }
+        // Fallback: suma directa de rubros si no se encontró la fila de TOTAL
+        if (totalFinal === 0) {
+            totalFinal = rubrosDelExcel.reduce((s, r) => s + r.total, 0);
+        }
+
+        // ── 4. Crear el registro del Presupuesto en la BD ─────────────────────
         const nuevoPresupuesto = await Presupuesto.create({
-            anio: Number(anio),
-            total: sumaTotalPresupuesto,
-            archivo_excel: nombreArchivo,
-            fecha_carga: new Date()
+            anio:          Number(anio),
+            total:         totalFinal,
+            archivo_excel: req.file.filename,
+            fecha_carga:   new Date()
+        });
+
+        // ── 5. Rubros: buscar/crear en BD y registrar asignación ──────────────
+        let rubrosCreados = 0;
+        for (const rubroExcel of rubrosDelExcel) {
+            const codigoGenerado = `EGR-${rubroExcel.nombre.replace(/\s+/g, "").substring(0, 14).toUpperCase()}`;
+
+            const [rubroEnBD] = await Rubro.findOrCreate({
+                where:    { nombre: rubroExcel.nombre },
+                defaults: { codigo: codigoGenerado, nombre: rubroExcel.nombre, tipo: "EGRESO" }
+            });
+
+            await PresupuestoRubro.upsert({
+                id_presupuesto: nuevoPresupuesto.id_presupuesto,
+                id_rubro:       rubroEnBD.id_rubro,
+                monto_asignado: rubroExcel.total
+            });
+            rubrosCreados++;
+        }
+
+        // ── 6. Calcular y generar alícuotas desde porcentajes en BD ──────────
+        //    Fórmula: valor_mensual = total_presupuesto × porcentaje_alicuota / 12
+        //    porcentaje_alicuota se guarda como decimal: 0.0358 = 3.58%
+        //    Se generan 12 registros (uno por mes) por cada vivienda activa.
+        let alicuotasCreadas = 0;
+        const viviendas = await Vivienda.findAll({ where: { estado: true } });
+
+        for (const vivienda of viviendas) {
+            const porcentaje = Number(vivienda.porcentaje_alicuota);
+            if (!porcentaje || porcentaje <= 0) continue;
+
+            // Redondear a 2 decimales
+            const valorMensual = Math.round((totalFinal * porcentaje / 12) * 100) / 100;
+
+            for (let mes = 1; mes <= 12; mes++) {
+                const existe = await Alicuota.findOne({
+                    where: {
+                        id_vivienda:    vivienda.id_vivienda,
+                        id_presupuesto: nuevoPresupuesto.id_presupuesto,
+                        mes,
+                        anio:           Number(anio)
+                    }
+                });
+                if (!existe) {
+                    const fechaVenc = new Date(Number(anio), mes - 1, 10);
+                    await Alicuota.create({
+                        id_vivienda:       vivienda.id_vivienda,
+                        id_presupuesto:    nuevoPresupuesto.id_presupuesto,
+                        mes,
+                        anio:              Number(anio),
+                        valor_base:        valorMensual,
+                        fecha_vencimiento: fechaVenc.toISOString().split("T")[0],
+                        estado:            "PENDIENTE"
+                    });
+                    alicuotasCreadas++;
+                }
+            }
+        }
+
+        // ── 7. Auditoría ──────────────────────────────────────────────────────
+        const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Presupuesto ${anio} importado`,
+            ip_origen:  req.ip,
+            detalle:    `Archivo: ${req.file.filename} | Rubros: ${rubrosCreados} | Total: $${totalFinal.toFixed(2)} | Alícuotas generadas: ${alicuotasCreadas}`,
         });
 
         return res.status(201).json({
-            id_presupuesto: nuevoPresupuesto.id_presupuesto,
-            msg: "Presupuesto importado",
-            rubros_creados: rubrosCreadosCount
+            id_presupuesto:    nuevoPresupuesto.id_presupuesto,
+            msg:               "Presupuesto importado correctamente",
+            total:             totalFinal,
+            rubros_creados:    rubrosCreados,
+            alicuotas_creadas: alicuotasCreadas
         });
     } catch (err) {
         console.error("Error en importar presupuestos:", err);
@@ -212,6 +301,15 @@ module.exports.agregarRubro = async (req, res) => {
         presupuesto.total = Number(nuevaSuma) || 0;
         await presupuesto.save();
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Rubro #${id_rubro} asignado al presupuesto #${id}`,
+            ip_origen:  req.ip,
+            detalle:    `Monto asignado: $${monto_asignado}`,
+        });
+
         return res.status(201).json({ msg: "Rubro asignado al presupuesto" });
     } catch (err) {
         console.error("Error en agregar rubro al presupuesto:", err);
@@ -249,6 +347,15 @@ module.exports.editarMontoRubro = async (req, res) => {
             presupuesto.total = Number(nuevaSuma);
             await presupuesto.save();
         }
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Presupuestos" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Monto del rubro #${idRubro} en presupuesto #${id} actualizado`,
+            ip_origen:  req.ip,
+            detalle:    `Nuevo monto: $${monto_asignado}`,
+        });
 
         return res.status(200).json({ msg: "Monto actualizado" });
     } catch (err) {

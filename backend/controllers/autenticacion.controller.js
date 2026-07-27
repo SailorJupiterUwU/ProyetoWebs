@@ -4,11 +4,12 @@ const Persona = require("../models/persona.model");
 const Rol = require("../models/rol.model");
 const Modulo = require("../models/modulo.model");
 const Vivienda = require("../models/vivienda.model");
-const TokenRecuperacion = require("../models/tokenRecuperacion.model")
+const TokenRecuperacion = require("../models/tokenRecuperacion.model");
 
 const bcrypt = require("bcryptjs");
 const JWT = require("jsonwebtoken");
 const { JWT_SECRET, JWT_EXPIRES_IN, JWT_RESET_EXPIRES_IN } = require("../config/jwt.config");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // Función auxiliar para generar el Token JWT
 const generateToken = (id_usuario, id_rol, rolNombre) => {
@@ -56,6 +57,13 @@ module.exports.login = async (req, res) => {
         // Validar la contraseña encriptada con bcrypt
         const esPasswordValido = await bcrypt.compare(password, usuarioEncontrado.password_hash);
         if (!esPasswordValido) {
+            const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+            await registrarAuditoria({
+                id_usuario: usuarioEncontrado.id_usuario,
+                id_modulo:  modulo?.id_modulo,
+                accion:     "Intento de inicio de sesión fallido (contraseña incorrecta)",
+                ip_origen:  req.ip,
+            });
             return res.status(401).json({ msg: "Correo o contraseña incorrectos" });
         }
 
@@ -100,6 +108,15 @@ module.exports.login = async (req, res) => {
 
         // Generar token JWT
         const token = generateToken(usuarioEncontrado.id_usuario, usuarioEncontrado.id_rol, nombreRol);
+
+        // Registrar el inicio de sesión exitoso en la bitácora
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: usuarioEncontrado.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Inicio de sesión exitoso",
+            ip_origen:  req.ip,
+        });
 
         return res.status(200).json({
             token: token,
@@ -162,7 +179,7 @@ module.exports.registro = async (req, res) => {
         }
 
         // ID de rol por defecto si la tabla roles aún no tiene registros (ej: 2)
-        let idRolAsignado = 2;
+        let idRolAsignado = 3;
         if (rolResidente) {
             idRolAsignado = rolResidente.id_rol;
         }
@@ -187,7 +204,7 @@ module.exports.registro = async (req, res) => {
         });
 
         // 7. Crear el Usuario ligado a la Persona creada
-        await Usuario.create({
+        const nuevoUsuario = await Usuario.create({
             id_persona: nuevaPersona.id_persona,
             id_rol: idRolAsignado,
             id_vivienda: vivienda.id_vivienda,
@@ -195,6 +212,16 @@ module.exports.registro = async (req, res) => {
             password_hash: hashedPassword,
             fecha_registro: new Date(),
             estado: "PENDIENTE"
+        });
+
+        // Registrar el nuevo registro en la bitácora
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: nuevoUsuario.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Solicitud de registro enviada",
+            ip_origen:  req.ip,
+            detalle:    `Correo: ${correo_login} | Vivienda: ${numero_vivienda}`,
         });
 
         return res.status(201).json({ msg: "Solicitud enviada, en espera de aprobación" });
@@ -261,14 +288,23 @@ module.exports.resetPassword = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const nueva_password_hashed = await bcrypt.hash(nueva_password, salt);
 
-        // Actualizar la contraseña del usuario                                                                                                                          
+        // Actualizar la contraseña del usuario
         await Usuario.update(
             { password_hash: nueva_password_hashed },
             { where: { id_usuario: registroToken.id_usuario } }
         );
 
-        // Marcar el token como usado                                                                                                                                    
+        // Marcar el token como usado
         await registroToken.update({ usado: true });
+
+        // Registrar el restablecimiento de contraseña en la bitácora
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: registroToken.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Contraseña restablecida mediante token de recuperación",
+            ip_origen:  req.ip,
+        });
 
         return res.status(200).json({ msg: "Contraseña actualizada" });
     } catch (err) {
@@ -276,14 +312,23 @@ module.exports.resetPassword = async (req, res) => {
         return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
     }
 };
-// ==========================================                                                                                                                            
-// 5. CERRAR SESIÓN (LOGOUT)                                                                                                                                             
-// ==========================================                                                                                                                            
+// ==========================================
+// 5. CERRAR SESIÓN (LOGOUT)
+// ==========================================
 module.exports.logout = async (req, res) => {
     try {
+        // req.usuario viene del middleware de autenticación (JWT decodificado)
+        const modulo = await Modulo.findOne({ where: { nombre: "Usuarios" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Cierre de sesión",
+            ip_origen:  req.ip,
+        });
+
         return res.status(200).json({ msg: "Sesión cerrada" });
     } catch (err) {
         console.error("Error en logout:", err);
         return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
     }
-}; 
+};

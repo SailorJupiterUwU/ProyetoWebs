@@ -10,6 +10,7 @@ const PeriodoDirectiva = require("../models/periodoDirectiva.model");
 const Rubro = require("../models/rubro.model");
 const Persona = require("../models/persona.model");
 const Usuario = require("../models/usuario.model");
+const Proveedor = require("../models/proveedor.model");
 
 /**
  * Script de Siembra de Datos Iniciales (Catálogos y Datos Semilla)
@@ -150,6 +151,23 @@ async function runSeeders() {
       viviendasMap[viv.numero] = vivInstance;
     }
     console.log("✅ Viviendas Iniciales cargadas.");
+
+    // 7. Sembrar Proveedores Iniciales
+    const proveedoresData = [
+      { nombre: "Seguridad Privada S.A." },
+      { nombre: "Netlife Telecomunicaciones" },
+      { nombre: "Jardinería y Mantenimiento Astoria" },
+      { nombre: "Empresa Eléctrica CNEL" },
+      { nombre: "Interagua / Agua Potable" },
+    ];
+
+    for (const prov of proveedoresData) {
+      await Proveedor.findOrCreate({
+        where: { nombre: prov.nombre },
+        defaults: prov,
+      });
+    }
+    console.log("✅ Proveedores Iniciales cargados.");
 
     // 7. Sembrar Usuario Administrador Inicial (Presidenta)
     const correoAdmin = "presidenta@condosecure.com";

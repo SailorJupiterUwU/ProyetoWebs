@@ -1,6 +1,7 @@
 const Rol = require("../models/rol.model");
 const Modulo = require("../models/modulo.model");
 const RolModulo = require("../models/rolModulo.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. LISTAR ROLES (GET /roles)
@@ -46,6 +47,14 @@ module.exports.crear = async (req, res) => {
             estado: true
         });
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Roles" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Rol creado: ${nombre}`,
+            ip_origen:  req.ip,
+        });
+
         return res.status(201).json({
             id_rol: nuevoRol.id_rol,
             msg: "Rol creado"
@@ -81,6 +90,14 @@ module.exports.editar = async (req, res) => {
 
         await rol.save();
 
+        const modulo = await Modulo.findOne({ where: { nombre: "Roles" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Rol #${id} editado`,
+            ip_origen:  req.ip,
+        });
+
         return res.status(200).json({ msg: "Rol actualizado" });
     } catch (err) {
         console.error("Error en editar rol:", err);
@@ -103,6 +120,14 @@ module.exports.cambiarEstado = async (req, res) => {
 
         rol.estado = estado;
         await rol.save();
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Roles" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     `Estado del rol #${id} cambiado a ${estado}`,
+            ip_origen:  req.ip,
+        });
 
         return res.status(200).json({ msg: "Estado actualizado" });
     } catch (err) {
@@ -178,6 +203,15 @@ module.exports.actualizarModulos = async (req, res) => {
                 });
             }
         }
+
+        const moduloBD = await Modulo.findOne({ where: { nombre: "Roles" } });
+        await registrarAuditoria({
+            id_usuario: req.usuario?.id_usuario,
+            id_modulo:  moduloBD?.id_modulo,
+            accion:     `Permisos de módulos actualizados para rol #${id}`,
+            ip_origen:  req.ip,
+            detalle:    `Módulos asignados: [${modulos?.join(", ")}]`,
+        });
 
         return res.status(200).json({ msg: "Permisos actualizados" });
     } catch (err) {

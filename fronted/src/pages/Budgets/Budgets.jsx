@@ -47,7 +47,10 @@ const Budgets = () => {
     const result = await uploadBudget(selectedFile);
     setIsImporting(false);
     if (result.success) {
-      alert(`Presupuesto importado: ${result.rubros_creados} rubros creados.`);
+      const msgAlicuotas = result.alicuotas_creadas > 0
+        ? ` · ${result.alicuotas_creadas} alícuotas generadas automáticamente.`
+        : '';
+      alert(`Presupuesto importado: ${result.rubros_creados} rubros creados.${msgAlicuotas}`);
       setSelectedFile(null);
     } else {
       alert(result.error);

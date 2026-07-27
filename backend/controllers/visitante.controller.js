@@ -1,6 +1,8 @@
 const Visitante = require("../models/visitante.model");
 const CodigoQR = require("../models/codigoQr.model");
 const Vivienda = require("../models/vivienda.model");
+const Modulo = require("../models/modulo.model");
+const { registrarAuditoria } = require("../utils/auditoria.util");
 
 // ==========================================
 // 1. CREAR VISITANTE / PASE (POST /visitantes)
@@ -40,6 +42,15 @@ module.exports.crear = async (req, res) => {
             valido_hasta: valido_hasta ? new Date(valido_hasta) : new Date(Date.now() + 24 * 60 * 60 * 1000),
             fecha_generacion: new Date(),
             estado: "PENDIENTE"
+        });
+
+        const modulo = await Modulo.findOne({ where: { nombre: "Control QR" } });
+        await registrarAuditoria({
+            id_usuario: idUsuario,
+            id_modulo:  modulo?.id_modulo,
+            accion:     "Pase de visitante generado",
+            ip_origen:  req.ip,
+            detalle:    `Visitante: ${nombre} ${apellido} | Cédula: ${cedula} | Vivienda destino: #${id_vivienda_destino}`,
         });
 
         return res.status(201).json({
