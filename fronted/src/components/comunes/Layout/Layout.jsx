@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { to: '/egresos', icon: 'trending_down', label: 'Egresos', modulo: 'Egresos', roles: ['Presidenta', 'Tesorera'] },
   { to: '/seguridad/generar', icon: 'qr_code_2', label: 'Control QR', modulo: 'Control QR', roles: ['Presidenta', 'Tesorera', 'Residente', 'Guardia'] },
   { to: '/auditoria', icon: 'change_history', label: 'Auditoría', modulo: 'Auditoria', roles: ['Presidenta', 'Tesorera'] },
+  { to: '/proveedores', icon: 'local_shipping', label: 'Proveedores', modulo: 'Proveedores', roles: ['Presidenta', 'Tesorera'] },
 ];
 
 const Layout = ({ children }) => {
