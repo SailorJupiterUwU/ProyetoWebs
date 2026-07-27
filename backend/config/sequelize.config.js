@@ -8,7 +8,15 @@ const sequelize = new Sequelize(
     {
         host: env.db.host,
         port: env.db.port,
-        dialect: env.db.dialect
+        dialect: env.db.dialect,
+        dialectOptions: env.db.sslCa
+            ? {
+                ssl: {
+                    ca: env.db.sslCa,
+                    rejectUnauthorized: true
+                }
+            }
+            : {}
     }
 );
 

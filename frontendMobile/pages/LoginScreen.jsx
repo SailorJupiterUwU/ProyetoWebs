@@ -11,6 +11,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import useAuth from '../hooks/useAuth';
 
 const LoginScreen = ({ navigation }) => {
@@ -36,110 +37,111 @@ const LoginScreen = ({ navigation }) => {
             return;
         }
 
-        const result = await login(formData.correo, formData.password);
-        if (result.success) {
-            navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
-        }
+        // No navegamos manualmente: RootNavigator observa isAuthenticated
+        // y cambia de AuthStack a AppStack automáticamente al hacer login.
+        await login(formData.correo, formData.password);
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-                <View style={styles.brandContainer}>
-                    <MaterialIcons name="domain" size={48} color="#f97316" />
-                    <Text style={styles.brandName}>CondoSecure Manager</Text>
-                    <Text style={styles.brandTagline}>
-                        Sistema para Gestión Administrativa, Financiera y de Seguridad de un Conjunto
-                        Habitacional
-                    </Text>
-                </View>
-
-                <View style={styles.formCard}>
-                    <Text style={styles.title}>Acceso al Sistema</Text>
-
-                    {error ? (
-                        <View style={styles.errorAlert}>
-                            <Text style={styles.errorAlertText}>{error}</Text>
-                        </View>
-                    ) : null}
-
-                    <View style={styles.field}>
-                        <Text style={styles.label}>Correo electrónico</Text>
-                        <View style={[styles.inputWrapper, formErrors.correo && styles.inputWrapperError]}>
-                            <MaterialIcons name="mail" size={18} color="#584237" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                value={formData.correo}
-                                onChangeText={(v) => handleChange('correo', v)}
-                                placeholder="correo@ejemplo.com"
-                                placeholderTextColor="#9ca3af"
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                        </View>
-                        {formErrors.correo ? <Text style={styles.errorText}>{formErrors.correo}</Text> : null}
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+                    <View style={styles.brandContainer}>
+                        <MaterialIcons name="domain" size={48} color="#f97316" />
+                        <Text style={styles.brandName}>CondoSecure Manager</Text>
+                        <Text style={styles.brandTagline}>
+                            Sistema para Gestión Administrativa, Financiera y de Seguridad de un Conjunto
+                            Habitacional
+                        </Text>
                     </View>
 
-                    <View style={styles.field}>
-                        <Text style={styles.label}>Contraseña</Text>
-                        <View style={[styles.inputWrapper, formErrors.password && styles.inputWrapperError]}>
-                            <MaterialIcons name="lock" size={18} color="#584237" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                value={formData.password}
-                                onChangeText={(v) => handleChange('password', v)}
-                                placeholder="••••••••"
-                                placeholderTextColor="#9ca3af"
-                                secureTextEntry={!showPassword}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword((s) => !s)}>
-                                <MaterialIcons
-                                    name={showPassword ? 'visibility_off' : 'visibility'}
-                                    size={18}
-                                    color="#584237"
+                    <View style={styles.formCard}>
+                        <Text style={styles.title}>Acceso al Sistema</Text>
+
+                        {error ? (
+                            <View style={styles.errorAlert}>
+                                <Text style={styles.errorAlertText}>{error}</Text>
+                            </View>
+                        ) : null}
+
+                        <View style={styles.field}>
+                            <Text style={styles.label}>Correo electrónico</Text>
+                            <View style={[styles.inputWrapper, formErrors.correo && styles.inputWrapperError]}>
+                                <MaterialIcons name="mail" size={18} color="#584237" style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    value={formData.correo}
+                                    onChangeText={(v) => handleChange('correo', v)}
+                                    placeholder="correo@ejemplo.com"
+                                    placeholderTextColor="#9ca3af"
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
                                 />
+                            </View>
+                            {formErrors.correo ? <Text style={styles.errorText}>{formErrors.correo}</Text> : null}
+                        </View>
+
+                        <View style={styles.field}>
+                            <Text style={styles.label}>Contraseña</Text>
+                            <View style={[styles.inputWrapper, formErrors.password && styles.inputWrapperError]}>
+                                <MaterialIcons name="lock" size={18} color="#584237" style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    value={formData.password}
+                                    onChangeText={(v) => handleChange('password', v)}
+                                    placeholder="••••••••"
+                                    placeholderTextColor="#9ca3af"
+                                    secureTextEntry={!showPassword}
+                                />
+                                <TouchableOpacity onPress={() => setShowPassword((s) => !s)}>
+                                    <MaterialIcons
+                                        name={showPassword ? 'visibility_off' : 'visibility'}
+                                        size={18}
+                                        color="#584237"
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                            {formErrors.password ? (
+                                <Text style={styles.errorText}>{formErrors.password}</Text>
+                            ) : null}
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.forgotPassword}
+                            onPress={() => navigation.navigate('ForgotPassword')}
+                        >
+                            <Text style={styles.forgotPasswordText}>¿Olvidó su contraseña?</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.submitButton}
+                            onPress={handleSubmit}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <>
+                                    <Text style={styles.submitButtonText}>Iniciar Sesión</Text>
+                                    <MaterialIcons name="arrow-forward" size={18} color="#fff" />
+                                </>
+                            )}
+                        </TouchableOpacity>
+
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>¿No tienes cuenta? </Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                                <Text style={styles.registerLink}>Solicitar Registro</Text>
                             </TouchableOpacity>
                         </View>
-                        {formErrors.password ? (
-                            <Text style={styles.errorText}>{formErrors.password}</Text>
-                        ) : null}
                     </View>
-
-                    <TouchableOpacity
-                        style={styles.forgotPassword}
-                        onPress={() => navigation.navigate('ForgotPassword')}
-                    >
-                        <Text style={styles.forgotPasswordText}>¿Olvidó su contraseña?</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={handleSubmit}
-                        disabled={loading}
-                        activeOpacity={0.8}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <>
-                                <Text style={styles.submitButtonText}>Iniciar Sesión</Text>
-                                <MaterialIcons name="arrow_forward" size={18} color="#fff" />
-                            </>
-                        )}
-                    </TouchableOpacity>
-
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                            <Text style={styles.registerLink}>Solicitar Registro</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 
