@@ -72,6 +72,8 @@ const Users = () => {
           onRefetch={usersHook.fetchUsers}
           onUpdateStatus={usersHook.updateStatus}
           onCreateUser={usersHook.createUser}
+          onGetDetalle={usersHook.getDetalle}
+          onEditUser={usersHook.editUser}
           showAddModal={showAddModal}
           setShowAddModal={setShowAddModal}
         />

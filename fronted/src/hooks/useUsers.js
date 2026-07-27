@@ -49,7 +49,26 @@ const useUsers = () => {
     }
   };
 
-  return { data, loading, error, refetch: fetchUsers, createUser, updateStatus };
+  const getDetalle = async (id) => {
+    try {
+      const { data: res } = await api.get(ENDPOINTS.USUARIOS.OBTENER(id));
+      return { success: true, data: res };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  const editUser = async (id, payload) => {
+    try {
+      await api.put(ENDPOINTS.USUARIOS.ACTUALIZAR(id), payload);
+      await fetchUsers();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  return { data, loading, error, fetchUsers, createUser, updateStatus, getDetalle, editUser };
 };
 
 export default useUsers;
