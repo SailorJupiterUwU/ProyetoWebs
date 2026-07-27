@@ -4,7 +4,7 @@ import axios from 'axios';
  * Instancia centralizada de Axios con interceptores
  */
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/',
+  baseURL: process.env.REACT_APP_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
