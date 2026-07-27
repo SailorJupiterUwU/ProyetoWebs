@@ -35,7 +35,30 @@ const useProveedores = () => {
     }
   };
 
-  return { data, loading, error, refetch: fetchProveedores, crearProveedor };
+  const editarProveedor = async (id, cambios) => {
+    try {
+      await api.put(ENDPOINTS.PROVEEDORES.ACTUALIZAR(id), cambios);
+      await fetchProveedores();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: handleApiError(err) };
+    }
+  };
+
+  const eliminarProveedor = async (id) => {
+    // No existe DELETE real en el backend — "eliminar" = desactivar
+    return editarProveedor(id, { estado: false });
+  };
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchProveedores,
+    crearProveedor,
+    editarProveedor,
+    eliminarProveedor,
+  };
 };
 
 export default useProveedores;

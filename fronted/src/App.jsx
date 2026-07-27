@@ -16,6 +16,7 @@ import Roles from './pages/Roles/Roles';
 import GeneratePass from './pages/Security/GeneratePass/GeneratePass';
 import Scanner from './pages/Security/Scanner/Scanner';
 import Houses from './pages/Houses/Houses';
+import Providers from './pages/Providers/Providers';
 import LoadingSpinner from './components/comunes/LoadingSpinner/LoadingSpinner';
 import './App.module.css';
 
@@ -129,6 +130,14 @@ const App = () => {
             }
           />
 
+          <Route
+            path="/proveedores"
+            element={
+              <PrivateRoute>
+                <Providers />
+              </PrivateRoute>
+            }
+          />
           {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
