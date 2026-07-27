@@ -1,0 +1,273 @@
+================================================================================
+          DOCUMENTACIÓN TÉCNICA DEL PROYECTO BACKEND - CONDOSECURE
+================================================================================
+
+Este documento contiene la especificación detallada de la arquitectura de la API,
+los modelos de datos ORM (Sequelize), controladores de negocio, middlewares de
+seguridad y rendimiento, servicios auxiliares (utils) y el catálogo completo
+de rutas/endpoints expuestos para el ecosistema CondoSecure (Web y Móvil).
+
+--------------------------------------------------------------------------------
+1. TECNOLOGÍAS UTILIZADAS
+--------------------------------------------------------------------------------
+El backend de CondoSecure está construido sobre una infraestructura Node.js robusta:
+
+* Node.js (v20+): Entorno de ejecución en tiempo de ejecución de JavaScript del lado del servidor.
+* Express (v4.19.2): Framework web rápido y minimalista para la gestión de rutas, HTTP y middlewares.
+* Sequelize (v6.37.3): ORM (Object-Relational Mapping) basado en promesas para MySQL/MariaDB.
+* MySQL / MariaDB: Sistema de gestión de bases de datos relacional para persistencia de información.
+* JSON Web Token -jsonwebtoken- (v9.0.2): Mecanismo de autenticación sin estado mediante tokens firmados (JWT).
+* Bcryptjs (v2.4.3): Algoritmo de hashing seguro para la encriptación de contraseñas de usuarios.
+* Multer (v1.4.5-lts.1): Middleware para el procesamiento de peticiones multipart/form-data (subida de archivos e imágenes).
+* XLSX / SheetJS (v0.18.5): Motor de lectura y procesamiento contable de presupuestos en hojas de cálculo Excel.
+* CORS (v2.8.5): Middleware para la habilitación de peticiones de origen cruzado desde el frontend web y aplicaciones móviles.
+
+--------------------------------------------------------------------------------
+2. ARQUITECTURA Y ESTRUCTURA DE DIRECTORIOS
+--------------------------------------------------------------------------------
+El proyecto backend sigue una arquitectura MVC (Modelo-Vista-Controlador / API REST)
+orientada a servicios y desacoplada:
+
+backend/
+├── config/                  # Configuraciones globales y de conexión:
+│   ├── env.js               # Carga de variables de entorno de proceso (.env).
+│   └── sequelize.config.js  # Instancia y conexión ORM Sequelize con la base de datos MySQL.
+├── controllers/             # Controladores de lógica de negocio y procesamiento de peticiones:
+│   ├── alicuota.controller.js     # Consulta de alícuotas condominiales y estados de cuenta.
+│   ├── auditoria.controller.js    # Historial de logs de auditoría forense de acciones del sistema.
+│   ├── autenticacion.controller.js# Login, registro público, recuperación de clave y aprobación de solicitudes.
+│   ├── dashboard.controller.js    # Consolidado de métricas financieras, gráficos y movimientos recientes.
+│   ├── egreso.controller.js       # Registro, control, estado y liquidación de egresos/gastos.
+│   ├── historial.controller.js    # Trazabilidad e historial transaccional acumulado.
+│   ├── ingreso.controller.js      # Recaudación de pagos por alícuotas/multas y distribución contable.
+│   ├── modulo.controller.js       # Catálogo de módulos globales del sistema.
+│   ├── multa.controller.js        # Emisión y gestión de sanciones/multas a viviendas.
+│   ├── presupuesto.controller.js  # Importación de presupuestos Excel (.xlsx/.xls) y asignación de rubros.
+│   ├── proveedor.controller.js    # Directorio y gestión de proveedores de servicios.
+│   ├── qr.controller.js           # Validación y control de accesos por código QR para garita.
+│   ├── reporte.controller.js      # Resumen de reportes financieros y consolidados.
+│   ├── rol.controller.js          # Gestión de roles y matriz de permisos por módulo.
+│   ├── rubro.controller.js        # Catálogo de categorías de ingresos y egresos.
+│   ├── usuario.controller.js      # Administración de cuentas de usuario de la directiva y residentes.
+│   ├── visitante.controller.js    # Emisión de pases temporales de visita.
+│   └── vivienda.controller.js     # Catastro de viviendas y coeficientes de alícuota.
+├── middlewares/             # Middlewares de interceptación de peticiones HTTP:
+│   ├── auth.middleware.js   # Verificación de JWT y autorización de roles por endpoint.
+│   └── upload.middleware.js # Configuración de almacenamiento local (Multer) y límites de peso (15MB).
+├── models/                  # Definición de modelos de datos Sequelize y sus relaciones:
+│   ├── alicuota.model.js          # Oblicación financiera mensual por vivienda.
+│   ├── auditoria.model.js         # Log de eventos y transacciones críticas.
+│   ├── codigoQr.model.js          # Pases de entrada/salida y estado de vigencia QR.
+│   ├── egreso.model.js            # Registro de pagos salientes y comprobantes.
+│   ├── ingreso.model.js           # Registro de cobros entrantes por alícuota o multa.
+│   ├── modulo.model.js            # Módulos navegables del sistema.
+│   ├── multa.model.js             # Sanciones monetarias asociadas a viviendas o alícuotas.
+│   ├── periodoDirectiva.model.js  # Gestión de periodos administrativos de la directiva.
+│   ├── persona.model.js           # Datos filiales de personas físicas (Cédula, Nombres, Teléfono).
+│   ├── presupuesto.model.js        # Encabezado del presupuesto operativo anual.
+│   ├── presupuestoRubro.model.js   # Tabla pivote relacional de rubros presupuestados.
+│   ├── proveedor.model.js         # Entidades o contratistas de servicios externos.
+│   ├── reporteFinanciero.model.js # Registros de consolidados contables.
+│   ├── rol.model.js               # Perfiles de usuario (Presidenta, Tesorera, Residente, Guardia).
+│   ├── rolModulo.model.js         # Matriz relacional de permisos Rol-Módulo.
+│   ├── rubro.model.js             # Categorías contables (Ingreso/Egreso).
+│   ├── tokenRecuperacion.model.js # Tokens temporales para restablecimiento de clave.
+│   ├── usuario.model.js           # Cuentas de acceso, credenciales e identidades.
+│   ├── visitante.model.js         # Invitaciones y registros de visitantes.
+│   └── vivienda.model.js          # Propiedades residenciales y porcentaje alícuota.
+├── routes/                  # Enrutadores Express (Endpoints REST API):
+│   ├── alicuota.routes.js, auditoria.routes.js, auth.routes.js, dashboard.routes.js,
+│   ├── egreso.routes.js, historial.routes.js, ingreso.routes.js, modulo.routes.js,
+│   ├── multa.routes.js, presupuesto.routes.js, proveedor.routes.js, qr.routes.js,
+│   ├── reporte.routes.js, rol.routes.js, rubro.routes.js, usuario.routes.js,
+│   ├── visitante.routes.js, vivienda.routes.js
+├── seed/                    # Población inicial de base de datos:
+│   └── seeder.js            # Script de inicialización de roles, módulos, usuarios admin y proveedores.
+├── uploads/                 # Directorio de almacenamiento de comprobantes y archivos Excel (Ignorado en Git).
+├── utils/                   # Servicios y utilidades auxiliares:
+│   ├── auditoria.util.js    # Registrador automático de eventos en la tabla de auditoría.
+│   └── password.util.js     # Helper de encriptación y verificación de claves de acceso.
+└── server.js                # Archivo principal de inicialización del servidor HTTP y sincronización ORM.
+
+--------------------------------------------------------------------------------
+3. MODELOS DE DATOS Y RELACIONES (ENTIDADES)
+--------------------------------------------------------------------------------
+
+3.1. Persona (`personas`) y Usuario (`usuarios`)
+* `Persona`: Contiene la identidad legal (`ci_ruc`, `nombres`, `apellidos`, `correo`, `telefono`).
+* `Usuario`: Representa la credencial de acceso (`correo_login`, `password_hash`, `estado`).
+* Relación: `Usuario.belongsTo(Persona)` y `Usuario.belongsTo(Rol)`. Un usuario pertenece a una
+  persona física y tiene asignado un rol específico. Adicionalmente, se vincula a una `Vivienda` (opcional).
+
+3.2. Rol (`roles`), Módulo (`modulos`) y Permisos (`rol_modulos`)
+* `Rol`: Representa los perfiles del sistema ("Presidenta", "Tesorera", "Residente", "Guardia").
+* `Modulo`: Representa las secciones del software ("Dashboard", "Presupuestos", "Egresos", etc.).
+* Relación: `Rol.belongsToMany(Modulo, { through: RolModulo })`. Define la matriz dinámica de
+  permisos que determina qué módulos puede consumir cada rol.
+
+3.3. Vivienda (`viviendas`), Presupuesto (`presupuestos`) y Alicuota (`alicuotas`)
+* `Vivienda`: Almacena el número de villa/manzana y el `porcentaje_alicuota` (ej. 0.0500 para 5%).
+* `Presupuesto`: Almacena el año contable y el `total` aprobado mediante la importación de Excel.
+* `PresupuestoRubro`: Asigna un monto límite a cada `Rubro` para un año presupuestario.
+* `Alicuota`: Obligación mensual individual generada automáticamente por vivienda.
+* Cálculo Automático de Alícuota:
+  `valor_base = (total_presupuesto * porcentaje_alicuota) / 12`
+* Relación: `Alicuota.belongsTo(Vivienda)` y `Alicuota.belongsTo(Presupuesto)`.
+
+3.4. Ingreso (`ingresos`), Egreso (`egresos`), Multa (`multas`) y Proveedor (`proveedores`)
+* `Ingreso`: Registra el dinero cobrado. Asocia una `Alicuota` o `Multa`, la `Vivienda`, el `Rubro`
+  y el `Usuario` que asienta la transacción. Al crear un ingreso, actualiza automáticamente
+  el estado de la `Alicuota` o `Multa` a "PAGADO".
+* `Egreso`: Registra los gastos operativos del condominio. Vincula un `Proveedor`, un `Rubro` de egreso
+  y contiene el número de comprobante, valor y estado ("PENDIENTE", "ACOMPROBAR", "PAGADO").
+* `Proveedor`: Directorio de empresas o prestadores de servicio externos (ej. Netlife, CNEL, Seguridad).
+
+3.5. Visitante (`visitantes`) y Código QR (`codigos_qr`)
+* `Visitante`: Información de la persona invitada (nombres, cédula, vivienda destino, placa).
+* `CodigoQR`: Almacena el hash encriptado único, fecha/hora de validez inicial y final, y el estado
+  del pase ("ACTIVO", "USADO", "EXPIRADO", "REVOCADO").
+* Relación: `CodigoQR.belongsTo(Visitante)` y `CodigoQR.belongsTo(Vivienda)`.
+
+3.6. Auditoría (`auditoria`)
+* `Auditoria`: Guarda la traza forense de cada acción realizada en la API (`id_usuario`, `id_modulo`,
+  `accion`, `ip_origen`, `detalle`, `fecha`).
+
+--------------------------------------------------------------------------------
+4. MIDDLEWARES Y UTILIDADES (MIDDLEWARES & UTILS)
+--------------------------------------------------------------------------------
+
+4.1. Auth Middleware (`src/middlewares/auth.middleware.js`)
+* `autenticacion`: Extrae el token JWT del encabezado `Authorization: Bearer <token>`. Decodifica la
+  firma y adjunta los datos del usuario en `req.usuario`. Retorna HTTP 401 si no hay token o es inválido.
+* `autorizacion(rolesPermitidos)`: Recibe una lista de roles autorizados (ej. `["Presidenta", "Tesorera"]`).
+  Compara el rol contenido en `req.usuario.rol` y si no coincide, retorna HTTP 403 Forbidden.
+
+4.2. Upload Middleware (`src/middlewares/upload.middleware.js`)
+* Implementa `multer` con `diskStorage` para guardar archivos recibidos en la carpeta `backend/uploads`.
+* Genera nombres de archivo únicos con marcas de tiempo (`Date.now() - nombreOriginal`).
+* Limita el tamaño de archivos a 15MB e implementa filtro por extensiones (`.jpg`, `.png`, `.pdf`, `.xlsx`, `.xls`).
+
+4.3. Utilidad de Auditoría (`src/utils/auditoria.util.js`)
+* `registrarAuditoria({ id_usuario, id_modulo, accion, ip_origen, detalle })`: Función asíncrona
+  helper que inserta de forma centralizada un registro en la tabla `auditoria`.
+
+4.4. Utilidad de Contraseñas (`src/utils/password.util.js`)
+* `hashPassword(password)`: Genera un salt y retorna el hash Bcrypt de la clave.
+* `comparePassword(password, hash)`: Compara una clave en texto plano contra su hash almacenado.
+
+--------------------------------------------------------------------------------
+5. CONTROLADORES Y LÓGICA DE NEGOCIO (CONTROLLERS)
+--------------------------------------------------------------------------------
+
+* Autenticación (`autenticacion.controller.js`):
+  - `login`: Valida credenciales, comprueba que la cuenta esté activa, obtiene los módulos permitidos
+    para su rol y firma un Token JWT con expiración de 24 horas.
+  - `registroResidente`: Recibe peticiones de registro público (FormData con foto), crea la `Persona` y
+    la cuenta de `Usuario` en estado "PENDIENTE_APROBACION".
+  - `listarSolicitudes`: Lista todas las cuentas de residentes en estado pendiente para revisión.
+  - `aprobarSolicitud`: Cambia el estado del usuario a "ACTIVO", le asigna el rol de "Residente" y envía
+    notificación/confirmación.
+  - `rechazarSolicitud`: Cambia el estado a "RECHAZADO" y almacena el motivo del rechazo.
+
+* Presupuesto (`presupuesto.controller.js`):
+  - `importarExcel`: Lee la primera hoja del archivo Excel cargado (`.xlsx`/`.xls`) buscando la fila 8+
+    para extraer los rubros contables con sus montos anuales, y localiza la fila de "SUBTOTAL ANUAL" para
+    obtener el total final del presupuesto con contingencia. Inserta el `Presupuesto`, sincroniza los
+    `Rubros` y calcula automáticamente 12 alícuotas mensuales por cada vivienda activa registrada en la BD.
+  - `listarRubros`: Retorna el catálogo de rubros del presupuesto indicando el monto asignado, el gasto
+    ejecutado (suma de egresos pagados) y el saldo disponible en caja.
+
+* Ingresos (`ingreso.controller.js`):
+  - `crear`: Registra el pago de una alícuota o multa. Valida que no haya sido pagada previamente,
+    calcula el total recaudado, guarda la imagen del comprobante de transferencia y actualiza el estado
+    de la alícuota/multa a "PAGADO".
+
+* Egresos (`egreso.controller.js`):
+  - `crear`: Asienta una obligación saliente vinculada a un proveedor y a un rubro contable de egreso.
+  - `cambiarEstado`: Permite actualizar el estado del egreso de "PENDIENTE" a "PAGADO" o "ANULADO".
+
+* Control QR (`qr.controller.js`):
+  - `validarQr`: Recibe el código hash escaneado en garita. Verifica si el pase existe, si está dentro del
+    rango de fecha/hora de validez y si no se encuentra expirado o revocado.
+  - `registrarIngreso` / `registrarSalida`: Actualiza las marcas de tiempo físicas de entrada o salida
+    del visitante y modifica el estado del pase a "USADO".
+
+--------------------------------------------------------------------------------
+6. RUPAS Y ENDPOINTS EXPUESTOS (API ROUTES)
+--------------------------------------------------------------------------------
+Todas las rutas de la API están prefijadas por `/api` y cuentan con protección mediante JWT
+y middlewares de autorización de roles.
+
+6.1. Autenticación y Cuentas (`/api/auth`)
+* POST /api/auth/login                       Inicia sesión y obtiene JWT.
+* POST /api/auth/registro                    Registro de residentes (Multipart con foto).
+* POST /api/auth/recuperar-password          Solicita restablecimiento de contraseña.
+* POST /api/auth/reset-password              Establece una nueva contraseña.
+
+6.2. Usuarios y Solicitudes (`/api/usuarios`)
+* GET   /api/usuarios                        Lista usuarios del sistema (admite paginación y filtros).
+* GET   /api/usuarios/solicitudes            Lista solicitudes de registro pendientes.
+* PATCH /api/usuarios/solicitudes/:id/aprobar Aprobar registro de residente.
+* PATCH /api/usuarios/solicitudes/:id/rechazar Rechazar registro de residente (envía motivo).
+* PATCH /api/usuarios/:id/estado             Activar o desactivar cuenta de usuario.
+
+6.3. Roles y Matriz de Permisos (`/api/roles` y `/api/modulos`)
+* GET   /api/roles                           Lista los roles del sistema.
+* GET   /api/roles/:id/modulos               Obtiene los permisos por módulo para un rol.
+* PUT   /api/roles/:id/modulos               Actualiza los permisos de acceso de un rol.
+* GET   /api/modulos                         Lista el catálogo global de módulos.
+
+6.4. Presupuestos y Rubros (`/api/presupuestos` y `/api/rubros`)
+* GET   /api/presupuestos                    Lista los presupuestos anuales.
+* GET   /api/presupuestos/:id                Detalle de un presupuesto.
+* POST  /api/presupuestos/importar           Importa archivo Excel de presupuesto (.xlsx/.xls).
+* GET   /api/presupuestos/:id/rubros         Obtiene rubros, montos asignados, ejecutados y saldo.
+* POST  /api/presupuestos/:id/rubros         Agrega un rubro al presupuesto.
+* PUT   /api/presupuestos/:id/rubros/:idRubro Edita el monto asignado a un rubro.
+* GET   /api/rubros                          Catálogo general de rubros.
+
+6.5. Ingresos y Alícuotas (`/api/ingresos` y `/api/alicuotas`)
+* GET   /api/ingresos                        Lista ingresos paginados y filtrados.
+* GET   /api/ingresos/resumen                Métricas del mes (ingresos totales, cobranza).
+* GET   /api/ingresos/mis-pagos              Lista de ingresos del residente autenticado.
+* POST  /api/ingresos                        Registra cobro de alícuota/multa (Multipart).
+* GET   /api/alicuotas                       Lista general de alícuotas condominiales.
+* GET   /api/alicuotas/mis-alicuotas         Lista alícuotas asignadas a la vivienda del usuario.
+
+6.6. Egresos y Proveedores (`/api/egresos` y `/api/proveedores`)
+* GET   /api/egresos                         Lista de egresos paginados y filtrados.
+* GET   /api/egresos/resumen                 Métricas de egresos y facturas pendientes.
+* POST  /api/egresos                         Registra un egreso / pago a proveedor.
+* PUT   /api/egresos/:id                     Actualiza datos de un egreso.
+* PATCH /api/egresos/:id/estado              Cambia el estado de un egreso (PAGADO/ANULADO).
+* GET   /api/proveedores                     Directorio de proveedores.
+* POST  /api/proveedores                     Registra un nuevo proveedor.
+
+6.7. Multas (`/api/multas`)
+* GET   /api/multas                          Lista general de multas emitidas.
+* GET   /api/multas/mis-multas               Lista multas correspondientes al residente autenticado.
+* POST  /api/multas                          Emisión de una multa a una vivienda.
+
+6.8. Catastro de Viviendas (`/api/viviendas`)
+* GET   /api/viviendas                       Lista todas las viviendas del condominio.
+* POST  /api/viviendas                       Registra una nueva vivienda.
+* PUT   /api/viviendas/:id                   Modifica propietario o porcentaje alícuota.
+* PATCH /api/viviendas/:id/estado            Activa o desactiva una vivienda.
+
+6.9. Visitantes y Pases QR (`/api/visitantes` y `/api/qr`)
+* GET   /api/visitantes                      Lista invitaciones emitidas.
+* POST  /api/visitantes                      Crea una invitación de visitante.
+* POST  /api/qr/validar                      Valida un código QR escaneado en garita.
+* PATCH /api/qr/:id/ingreso                  Registra hora de entrada física del visitante.
+* PATCH /api/qr/:id/salida                   Registra hora de salida física del visitante.
+* PATCH /api/qr/:id/revocar                  Invalida administrativamente un código QR.
+
+6.10. Auditoría, Dashboard y Reportes (`/api/auditoria`, `/api/dashboard`, `/api/reportes`)
+* GET   /api/auditoria                       Consulta la bitácora de auditoría con filtros.
+* GET   /api/dashboard/resumen               Resumen financiero consolidado para el panel principal.
+* GET   /api/dashboard/chart                 Datos formateados para gráficos de Ingresos vs Egresos.
+* GET   /api/reportes                        Lista reportes financieros.
+
+================================================================================
+Fin de la Documentación del Proyecto Backend. CondoSecure 2026.
+================================================================================
