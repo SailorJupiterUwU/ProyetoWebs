@@ -4,6 +4,7 @@ const Alicuota = require("../models/alicuota.model");
 const Multa = require("../models/multa.model");
 const Vivienda = require("../models/vivienda.model");
 const Rubro = require("../models/rubro.model");
+const { Op } = require("sequelize");
 
 // ==========================================
 // 1. RESUMEN GENERAL (GET /dashboard/resumen)
@@ -31,17 +32,44 @@ module.exports.resumen = async (req, res) => {
 // ==========================================
 // 2. INGRESOS VS EGRESOS POR MES (GET /dashboard/ingresos-vs-egresos)
 // ==========================================
+// ==========================================
+// 2. INGRESOS VS EGRESOS POR MES (GET /dashboard/ingresos-vs-egresos)
+// ==========================================
 module.exports.ingresosVsEgresos = async (req, res) => {
     try {
+        const anio = Number(req.query.anio) || new Date().getFullYear();
         const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-        
-        let data = [];
-        for (let i = 0; i < meses.length; i++) {
-            data.push({
-                mes: meses[i],
-                ingresos: Math.floor(Math.random() * 2000) + 3000,
-                egresos: Math.floor(Math.random() * 2000) + 2500
-            });
+
+        const inicioAnio = new Date(anio, 0, 1);
+        const finAnio = new Date(anio + 1, 0, 1);
+
+        const ingresos = await Ingreso.findAll({
+            where: {
+                estado: "PAGADO",
+                fecha_pago: { [Op.gte]: inicioAnio, [Op.lt]: finAnio }
+            },
+            attributes: ["fecha_pago", "total_pagado"]
+        });
+
+        const egresos = await Egreso.findAll({
+            where: {
+                estado: "PAGADO",
+                fecha_comprobante: { [Op.gte]: inicioAnio, [Op.lt]: finAnio }
+            },
+            attributes: ["fecha_comprobante", "valor"]
+        });
+
+        // Inicializar acumuladores en 0 para los 12 meses
+        let data = meses.map((mes) => ({ mes, ingresos: 0, egresos: 0 }));
+
+        for (let i = 0; i < ingresos.length; i++) {
+            const mesIdx = new Date(ingresos[i].fecha_pago).getMonth();
+            data[mesIdx].ingresos += Number(ingresos[i].total_pagado) || 0;
+        }
+
+        for (let j = 0; j < egresos.length; j++) {
+            const mesIdx = new Date(egresos[j].fecha_comprobante).getMonth();
+            data[mesIdx].egresos += Number(egresos[j].valor) || 0;
         }
 
         return res.status(200).json({ data: data });

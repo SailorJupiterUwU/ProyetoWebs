@@ -24,7 +24,7 @@
       "package": "com.condosecure"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/condominio.png"
     },
     "plugins": [
       "@react-native-community/datetimepicker"
