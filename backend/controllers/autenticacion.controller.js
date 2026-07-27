@@ -258,8 +258,20 @@ module.exports.recuperarPassword = async (req, res) => {
             });
         }
 
-        // Siempre responde 200 exista o no el correo                                                                                                    
-        return res.status(200).json({ msg: "Si el correo existe, se envió un link de recuperación" });
+        // En demo: si el correo existe, retornar el token para que el frontend lo use directamente
+        if (usuarioEncontrado) {
+            const ultimoToken = await TokenRecuperacion.findOne({
+                where: { id_usuario: usuarioEncontrado.id_usuario, usado: false },
+                order: [["fecha_generacion", "DESC"]],
+            });
+            return res.status(200).json({
+                msg: "Token de recuperación generado",
+                token: ultimoToken?.token,
+            });
+        }
+
+        // Si el correo no existe, igual responde 200 (sin exponer info)
+        return res.status(200).json({ msg: "Si el correo existe, se generó un token de recuperación" });
     } catch (err) {
         console.error("Error en recuperarPassword:", err);
         return res.status(500).json({ msg: "Error interno del servidor", error: err.message });
